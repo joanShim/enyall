@@ -3,7 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
-import { Home, Search, User } from "lucide-react";
+import { Home, Search } from "lucide-react";
 import { useEffect, useState } from "react";
 import { createBrowserSupabaseClient } from "@/utils/supabase/client";
 import { Session } from "@supabase/supabase-js";
