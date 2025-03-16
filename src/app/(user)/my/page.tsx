@@ -1,7 +1,10 @@
-import SignOutButton from "@/components/auth/SignOutButton";
 import Header from "@/components/layout/Header";
 import { createServerSupabaseClient } from "@/utils/supabase/server";
 import Image from "next/image";
+import Link from "next/link";
+import CreateReviewButton from "./CreateReviewButton";
+import { getUserProfileWithFavorites } from "@/actions/user-actions";
+import Favorites from "./Favorites";
 
 export default async function MyPage() {
   const supabase = await createServerSupabaseClient();
@@ -9,15 +12,27 @@ export default async function MyPage() {
     data: { session },
   } = await supabase.auth.getSession();
 
-  const { user_name, avatar_url } = session?.user.user_metadata ?? {};
+  if (!session) {
+    return <div>로그인이 필요합니다.</div>;
+  }
+
+  // 사용자 정보와 좋아하는 아티스트 정보를 한 번에 가져오기
+  const { user, favoriteArtists, error } = await getUserProfileWithFavorites(
+    session.user.id,
+  );
+
+  if (error || !user) {
+    return <div>{error || "사용자 정보를 찾을 수 없습니다."}</div>;
+  }
+
   return (
     <>
-      <Header title={user_name} />
-      <SignOutButton />
-      <section className="flex flex-col items-center justify-center border-y px-3 py-4">
+      <Header title={user.name} />
+      <CreateReviewButton />
+      <section className="rel flex flex-col items-center justify-center border-y px-3 py-4">
         <div className="relative size-20 overflow-hidden rounded-full border">
           <Image
-            src={avatar_url}
+            src={user.avatar_url}
             alt="프로필 이미지"
             fill
             sizes="80px"
@@ -25,7 +40,17 @@ export default async function MyPage() {
           />
         </div>
 
-        <p className="text-md font-bold underline py-2">{user_name}</p>
+        <Link
+          href="/profile-settings"
+          className="text-md py-2 font-bold underline"
+        >
+          {user.name}
+        </Link>
+
+        {/* 좋아하는 아티스트 섹션 */}
+        {favoriteArtists && favoriteArtists.length > 0 && (
+          <Favorites artists={favoriteArtists} />
+        )}
       </section>
     </>
   );
