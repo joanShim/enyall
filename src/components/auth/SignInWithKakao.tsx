@@ -7,12 +7,14 @@ export default function SignInWithKakao() {
   const handleSignIn = async () => {
     const supabase = createBrowserSupabaseClient();
 
+    // 현재 URL의 origin을 가져와서 리다이렉트 URL 생성
+    const origin = window.location.origin;
+    const redirectTo = `${origin}/auth/callback`;
+
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "kakao",
       options: {
-        redirectTo: process.env.NEXT_PUBLIC_VERCEL_URL
-          ? `https://${process.env.NEXT_PUBLIC_VERCEL_URL}/auth/callback`
-          : "http://localhost:3000/auth/callback",
+        redirectTo,
       },
     });
 
