@@ -1,6 +1,7 @@
 import { createServerSupabaseClient } from "@/utils/supabase/server";
 import { redirect } from "next/navigation";
-import CompleteProfileForm from "./components/CompleteProfileForm";
+import CompleteProfileForm from "./CompleteProfileForm";
+import { getArtists } from "@/actions/complete-profile-actions";
 
 export default async function CompleteProfilePage() {
   const supabase = await createServerSupabaseClient();
@@ -24,10 +25,18 @@ export default async function CompleteProfilePage() {
     console.log("이미 프로필이 완성되어 있습니다.");
     redirect("/my");
   }
+
+  // 아티스트 목록 가져오기
+  const { artists, error } = await getArtists();
+
+  if (error) {
+    console.error("아티스트 목록을 불러오는데 실패했습니다:", error);
+  }
+
   return (
     <div className="container mx-auto max-w-md p-4">
       <h1 className="mb-6 text-2xl font-bold">프로필 완성하기</h1>
-      <CompleteProfileForm user={user} />
+      <CompleteProfileForm user={user} artists={artists || []} />
     </div>
   );
 }

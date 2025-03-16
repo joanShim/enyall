@@ -3,6 +3,22 @@
 import { createServerSupabaseClient } from "@/utils/supabase/server";
 import { revalidatePath } from "next/cache";
 
+// 아티스트 목록
+export async function getArtists() {
+  const supabase = await createServerSupabaseClient();
+
+  const { data, error } = await supabase
+    .from("artists")
+    .select("*")
+    .order("official_name");
+
+  if (error) {
+    return { error: "아티스트 목록을 불러오는데 실패했습니다." };
+  }
+
+  return { artists: data };
+}
+
 export async function completeUserProfile(formData: FormData) {
   try {
     const supabase = await createServerSupabaseClient();
@@ -17,6 +33,8 @@ export async function completeUserProfile(formData: FormData) {
     }
 
     const name = formData.get("name") as string;
+    // 선택된 아티스트 ID 배열 가져오기
+    const selectedArtists = formData.getAll("selectedArtists") as string[];
 
     if (!name || name.trim() === "") {
       return { error: "이름을 입력해주세요." };
@@ -32,7 +50,7 @@ export async function completeUserProfile(formData: FormData) {
       name,
       email,
       avatar_url,
-      favorites: [],
+      favorites: selectedArtists,
       created_at: new Date().toISOString(),
     });
 

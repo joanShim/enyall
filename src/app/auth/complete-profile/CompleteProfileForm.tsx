@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { completeUserProfile } from "@/actions/complete-profile-actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,9 +9,12 @@ import { User } from "@supabase/supabase-js";
 import { useFormStatus } from "react-dom";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
+import { ArtistSelector } from "./ArtistSelector";
+import { Artist } from "@/types/artist";
 
 interface CompleteProfileFormProps {
   user: User;
+  artists: Artist[];
 }
 
 function SubmitButton() {
@@ -25,15 +28,25 @@ function SubmitButton() {
 
 export default function CompleteProfileForm({
   user,
+  artists,
 }: CompleteProfileFormProps) {
   const [error, setError] = useState<string | null>(null);
+  const [nickname, setNickname] = useState(user.user_metadata.name || "");
+  const [selectedArtists, setSelectedArtists] = useState<Artist[]>([]);
+  const formRef = useRef<HTMLFormElement>(null);
   const router = useRouter();
   const avatarUrl = user.user_metadata.avatar_url;
   const email = user.email;
 
   return (
     <form
+      ref={formRef}
       action={async (formData) => {
+        // 선택된 아티스트 ID를 폼 데이터에 추가
+        selectedArtists.forEach((artist) => {
+          formData.append("selectedArtists", artist.id);
+        });
+
         const result = await completeUserProfile(formData);
 
         if (result?.error) {
@@ -76,9 +89,19 @@ export default function CompleteProfileForm({
           name="name"
           placeholder="닉네임을 입력해주세요"
           required
-          defaultValue={""}
+          value={nickname}
+          onChange={(e) => setNickname(e.target.value)}
+          className="flex-1"
         />
       </div>
+
+      {/* 아티스트 선택 컴포넌트 */}
+      <ArtistSelector
+        artists={artists}
+        initialSelectedArtists={selectedArtists}
+        onChange={setSelectedArtists}
+        maxSelections={5}
+      />
 
       <SubmitButton />
     </form>
