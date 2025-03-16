@@ -24,7 +24,7 @@ export default function RootLayout({
     <QueryProvider>
       <html lang="ko">
         <body className={`${pretendard.variable} antialiased`}>
-          <main className="mx-auto min-h-screen max-w-md pb-16 shadow-xl">
+          <main className="relative mx-auto min-h-screen max-w-md pb-16 shadow-xl">
             {children}
           </main>
         </body>
