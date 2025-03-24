@@ -33,6 +33,7 @@ export default async function MyPage() {
         <div className="relative size-20 overflow-hidden rounded-full border">
           <Image
             src={user.avatar_url}
+            priority
             alt="프로필 이미지"
             fill
             sizes="80px"
@@ -41,7 +42,7 @@ export default async function MyPage() {
         </div>
 
         <Link
-          href="/profile-settings"
+          href="/my/profile-settings"
           className="text-md py-2 font-bold underline"
         >
           {user.name}

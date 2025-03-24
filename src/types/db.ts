@@ -12,27 +12,133 @@ export type Database = {
       artists: {
         Row: {
           debut_date: string | null
-          english_name: string | null
           id: string
-          korean_name: string | null
-          official_name: string
+          name_en: string | null
+          name_ko: string | null
+          name_official: string
           profile_image_url: string | null
         }
         Insert: {
           debut_date?: string | null
-          english_name?: string | null
           id?: string
-          korean_name?: string | null
-          official_name?: string
+          name_en?: string | null
+          name_ko?: string | null
+          name_official?: string
           profile_image_url?: string | null
         }
         Update: {
           debut_date?: string | null
-          english_name?: string | null
           id?: string
-          korean_name?: string | null
-          official_name?: string
+          name_en?: string | null
+          name_ko?: string | null
+          name_official?: string
           profile_image_url?: string | null
+        }
+        Relationships: []
+      }
+      concert_schedules: {
+        Row: {
+          concert_id: string | null
+          created_at: string | null
+          id: string
+          schedule_date: string
+          start_time: string
+          updated_at: string | null
+        }
+        Insert: {
+          concert_id?: string | null
+          created_at?: string | null
+          id?: string
+          schedule_date: string
+          start_time: string
+          updated_at?: string | null
+        }
+        Update: {
+          concert_id?: string | null
+          created_at?: string | null
+          id?: string
+          schedule_date?: string
+          start_time?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "concert_schedules_concert_id_fkey"
+            columns: ["concert_id"]
+            isOneToOne: false
+            referencedRelation: "concerts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      concerts: {
+        Row: {
+          created_at: string | null
+          id: string
+          poster_url: string | null
+          ticket_link: string | null
+          title: string
+          tour_id: string | null
+          updated_at: string | null
+          venue_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          poster_url?: string | null
+          ticket_link?: string | null
+          title: string
+          tour_id?: string | null
+          updated_at?: string | null
+          venue_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          poster_url?: string | null
+          ticket_link?: string | null
+          title?: string
+          tour_id?: string | null
+          updated_at?: string | null
+          venue_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "concerts_tour_id_fkey"
+            columns: ["tour_id"]
+            isOneToOne: false
+            referencedRelation: "tours"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tours: {
+        Row: {
+          created_at: string | null
+          id: string
+          poster_url: string | null
+          title: string
+          title_en: string | null
+          title_ko: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          poster_url?: string | null
+          title: string
+          title_en?: string | null
+          title_ko?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          poster_url?: string | null
+          title?: string
+          title_en?: string | null
+          title_ko?: string | null
+          updated_at?: string | null
         }
         Relationships: []
       }
@@ -66,6 +172,33 @@ export type Database = {
           following_count?: number | null
           id?: string
           name?: string
+        }
+        Relationships: []
+      }
+      venues: {
+        Row: {
+          address: string
+          capacity: string | null
+          created_at: string | null
+          id: string
+          name: string
+          updated_at: string | null
+        }
+        Insert: {
+          address: string
+          capacity?: string | null
+          created_at?: string | null
+          id?: string
+          name: string
+          updated_at?: string | null
+        }
+        Update: {
+          address?: string
+          capacity?: string | null
+          created_at?: string | null
+          id?: string
+          name?: string
+          updated_at?: string | null
         }
         Relationships: []
       }

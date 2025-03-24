@@ -10,7 +10,7 @@ export async function getArtists() {
   const { data, error } = await supabase
     .from("artists")
     .select("*")
-    .order("official_name");
+    .order("name_official");
 
   if (error) {
     return { error: "아티스트 목록을 불러오는데 실패했습니다." };
@@ -19,7 +19,7 @@ export async function getArtists() {
   return { artists: data };
 }
 
-export async function completeUserProfile(formData: FormData) {
+export async function updateUserProfile(formData: FormData) {
   try {
     const supabase = await createServerSupabaseClient();
 
@@ -40,37 +40,39 @@ export async function completeUserProfile(formData: FormData) {
       return { error: "이름을 입력해주세요." };
     }
 
-    // 카카오 로그인에서 가져온 프로필 이미지 URL
-    const avatar_url = user.user_metadata.avatar_url || "";
-    const email = user.email || "";
+    // users 테이블에 사용자 정보 업데이트
+    const { error: updateError } = await supabase
+      .from("users")
+      .update({
+        name,
+        favorites: selectedArtists,
+      })
+      .eq("id", user.id);
 
-    // users 테이블에 사용자 정보 저장
-    const { error: insertError } = await supabase.from("users").insert({
-      id: user.id,
-      name,
-      email,
-      avatar_url,
-      favorites: selectedArtists,
-      created_at: new Date().toISOString(),
-    });
-
-    if (insertError) {
-      console.error("사용자 정보 저장 오류:", insertError);
-      return { error: "프로필 저장 중 오류가 발생했습니다." };
+    if (updateError) {
+      console.error("사용자 정보 업데이트 오류:", updateError);
+      return {
+        error: `프로필 업데이트 중 오류가 발생했습니다: ${updateError.message}`,
+      };
     }
 
-    // 사용자 메타데이터 업데이트 (선택사항)
-    await supabase.auth.updateUser({
-      data: { user_name: name },
+    // 사용자 메타데이터 업데이트
+    const { error: authUpdateError } = await supabase.auth.updateUser({
+      data: { name },
     });
 
+    if (authUpdateError) {
+      console.error("인증 정보 업데이트 오류:", authUpdateError);
+    }
+
     // 캐시 갱신
-    revalidatePath("/");
+    revalidatePath("/my");
+    revalidatePath("/my/profile-settings");
 
     // 성공 반환
     return { success: true };
   } catch (error) {
-    console.error("프로필 완성 오류:", error);
+    console.error("프로필 업데이트 오류:", error);
     return { error: "알 수 없는 오류가 발생했습니다." };
   }
 }
