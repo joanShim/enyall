@@ -21,6 +21,7 @@ export default function TabBar() {
 
   useEffect(() => {
     getSession();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [supabase.auth]);
 
   const navItems = [
