@@ -45,15 +45,16 @@ export async function GET(request: Request) {
         return NextResponse.redirect(
           new URL("/my/profile-settings", requestUrl.origin),
         );
-      }
-
-      // 정상 로그인 처리 및 리다이렉트
-      if (isLocalEnv) {
-        return NextResponse.redirect(`${origin}${next}`);
-      } else if (forwardedHost) {
-        return NextResponse.redirect(`https://${forwardedHost}${next}`);
       } else {
-        return NextResponse.redirect(`${origin}${next}`);
+        // 기존 사용자의 경우 프로필 정보를 업데이트하지 않음
+        // 바로 리다이렉트 처리
+        if (isLocalEnv) {
+          return NextResponse.redirect(`${origin}${next}`);
+        } else if (forwardedHost) {
+          return NextResponse.redirect(`https://${forwardedHost}${next}`);
+        } else {
+          return NextResponse.redirect(`${origin}${next}`);
+        }
       }
     }
   }

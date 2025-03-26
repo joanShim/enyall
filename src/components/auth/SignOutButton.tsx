@@ -12,7 +12,7 @@ export default function SignOutButton() {
   };
   return (
     <>
-      <Button variant="link" onClick={handleSignOut}>
+      <Button variant="link" className="text-gray-500" onClick={handleSignOut}>
         로그아웃
       </Button>
     </>

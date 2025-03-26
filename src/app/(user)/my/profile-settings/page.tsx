@@ -34,7 +34,7 @@ export default async function ProfileSettingsPage() {
   const userFavorites = userData?.favorites || [];
 
   return (
-    <section className="px-4">
+    <section className="flex w-full flex-col items-center gap-2 p-4">
       <ProfileForm
         user={user}
         artists={artists || []}

@@ -72,7 +72,7 @@ export default function ProfileForm({
           router.push("/my");
         }
       }}
-      className="space-y-6"
+      className="w-full space-y-6"
     >
       {error && (
         <div className="rounded-md bg-red-50 p-4 text-sm text-red-500">
