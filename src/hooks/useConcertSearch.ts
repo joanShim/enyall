@@ -10,8 +10,14 @@ type Concert = Tables<"concerts"> & {
   artists: Tables<"artists">[];
 };
 
-export function useConcertSearch(initialTerm = "") {
+type SearchType = "concert" | "artist";
+
+export function useConcertSearch(
+  initialTerm = "",
+  initialType: SearchType = "concert",
+) {
   const [searchTerm, setSearchTerm] = useState(initialTerm);
+  const [searchType, setSearchType] = useState<SearchType>(initialType);
   const [concerts, setConcerts] = useState<Concert[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const debouncedSearchTerm = useDebounce(searchTerm, 500);
@@ -26,71 +32,79 @@ export function useConcertSearch(initialTerm = "") {
 
       setIsLoading(true);
       try {
-        // 콘서트 제목으로 검색
-        const { data: titleResults, error: titleError } = await supabase
-          .from("concerts")
-          .select(`*`)
-          .ilike("title", `%${debouncedSearchTerm}%`)
-          .limit(10);
+        let concertResults: Tables<"concerts">[] = [];
 
-        if (titleError) {
-          console.error("제목 검색 오류:", titleError);
-          return;
-        }
-
-        // artists_json 필드 내 name_official, name_ko, name_en으로 검색
-        const { data: artistJsonResults, error: artistJsonError } =
-          await supabase
+        if (searchType === "concert") {
+          // 콘서트 제목으로 검색
+          const { data, error } = await supabase
             .from("concerts")
             .select(`*`)
-            .or(
-              `artists_json->>name_official.ilike.%${debouncedSearchTerm}%,` +
-                `artists_json->>name_ko.ilike.%${debouncedSearchTerm}%,` +
-                `artists_json->>name_en.ilike.%${debouncedSearchTerm}%`,
-            )
+            .ilike("title", `%${debouncedSearchTerm}%`)
             .limit(10);
 
-        if (artistJsonError) {
-          console.error("아티스트 JSON 검색 오류:", artistJsonError);
+          if (error) throw error;
+          concertResults = data || [];
+        } else {
+          // 아티스트 이름으로 검색 후 관련 콘서트 찾기
+          const { data: artists, error: artistError } = await supabase
+            .from("artists")
+            .select("id")
+            .or(
+              `name_official.ilike.%${debouncedSearchTerm}%,` +
+                `name_ko.ilike.%${debouncedSearchTerm}%,` +
+                `name_en.ilike.%${debouncedSearchTerm}%`,
+            );
+
+          if (artistError) throw artistError;
+
+          if (artists && artists.length > 0) {
+            const { data: concerts, error: concertsError } = await supabase
+              .from("concerts")
+              .select("*")
+              .in(
+                "id",
+                (
+                  await supabase
+                    .from("concerts_artists")
+                    .select("concert_id")
+                    .in(
+                      "artist_id",
+                      artists.map((a) => a.id),
+                    )
+                ).data?.map((ca) => ca.concert_id) || [],
+              );
+
+            if (concertsError) throw concertsError;
+            concertResults = concerts || [];
+          }
         }
 
-        // 결과 합치기 및 중복 제거
-        const allResults = [
-          ...(titleResults || []),
-          ...(artistJsonResults || []),
-        ];
-
-        // ID 기준으로 중복 제거
-        const uniqueResults = Array.from(
-          new Map(allResults.map((item) => [item.id, item])).values(),
-        );
-
-        // 각 콘서트에 대한 추가 정보 가져오기
+        // 추가 정보 가져오기
         const enhancedResults = await Promise.all(
-          uniqueResults.map(async (concert) => {
-            // 공연장 정보 가져오기
+          concertResults.map(async (concert) => {
             const { data: venueData } = await supabase
               .from("venues")
               .select("*")
               .eq("id", concert.venue_id)
               .single();
 
-            // 아티스트 정보 가져오기
             const { data: artistsData } = await supabase
-              .from("concerts_artists")
-              .select(
-                `
-                artist:artists (*)
-              `,
-              )
-              .eq("concert_id", concert.id);
+              .from("artists")
+              .select("*")
+              .in(
+                "id",
+                (
+                  await supabase
+                    .from("concerts_artists")
+                    .select("artist_id")
+                    .eq("concert_id", concert.id)
+                ).data?.map((ca) => ca.artist_id) || [],
+              );
 
             return {
               ...concert,
               venue: venueData || null,
-              artists: artistsData
-                ? artistsData.map((item) => item.artist)
-                : [],
+              artists: artistsData || [],
             };
           }),
         );
@@ -104,11 +118,13 @@ export function useConcertSearch(initialTerm = "") {
     };
 
     fetchConcerts();
-  }, [debouncedSearchTerm, supabase]);
+  }, [debouncedSearchTerm, searchType, supabase]);
 
   return {
     searchTerm,
     setSearchTerm,
+    searchType,
+    setSearchType,
     concerts,
     isLoading,
     debouncedSearchTerm,

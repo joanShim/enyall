@@ -4,22 +4,44 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Search, Plus, MapPin } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
+import { TabGroup } from "@/components/ui/tab-group";
 import { useConcertSearch } from "@/hooks/useConcertSearch";
 import { useReviewFormStore } from "@/store/reviewFormStore";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
+import { useQueryState } from "nuqs";
 
 export default function SelectConcertForm() {
   const router = useRouter();
   const { setData } = useReviewFormStore();
+  const [searchQuery, setSearchQuery] = useQueryState("search");
+  const [typeQuery, setTypeQuery] = useQueryState("type", {
+    defaultValue: "artist",
+  });
 
   const {
     searchTerm,
     setSearchTerm,
+    searchType,
+    setSearchType,
     concerts,
     isLoading,
     debouncedSearchTerm,
-  } = useConcertSearch();
+  } = useConcertSearch(searchQuery || "", typeQuery as "artist" | "concert");
+
+  const tabs = ["아티스트", "공연명"];
+  const currentTab = searchType === "artist" ? "아티스트" : "공연명";
+
+  const handleTabChange = (tab: string) => {
+    const newType = tab === "아티스트" ? "artist" : "concert";
+    setSearchType(newType);
+    setTypeQuery(newType);
+  };
+
+  const handleSearch = (value: string) => {
+    setSearchTerm(value);
+    setSearchQuery(value || null);
+  };
 
   const handleConcertSelect = (concertId: string) => {
     setData({ concertId });
@@ -36,12 +58,21 @@ export default function SelectConcertForm() {
         <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-500" />
         <Input
           type="text"
-          placeholder="공연, 아티스트 검색"
+          placeholder={searchType === "artist" ? "아티스트" : "공연명"}
           className="pl-10"
           value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
+          onChange={(e) => handleSearch(e.target.value)}
         />
       </div>
+
+      {searchQuery && searchQuery.trim() !== "" && (
+        <TabGroup
+          tabs={tabs}
+          selectedTab={currentTab}
+          onChange={handleTabChange}
+          className="mt-4"
+        />
+      )}
 
       {isLoading && (
         <div className="space-y-4">
@@ -104,7 +135,7 @@ export default function SelectConcertForm() {
         className="mt-4 w-full"
         onClick={handleCreateNewConcert}
       >
-        <Plus className="mr-2 h-4 w-4" />새 콘서트 정보 등록
+        <Plus className="mr-2 h-4 w-4" />새 콘서트 등록
       </Button>
     </div>
   );
