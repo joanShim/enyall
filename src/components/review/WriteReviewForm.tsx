@@ -22,8 +22,7 @@ type WriteReviewFormValues = z.infer<typeof writeReviewSchema>;
 
 export default function WriteReviewForm() {
   const router = useRouter();
-  const { concertId, reviewContent, isPendingConcert, setData } =
-    useReviewFormStore();
+  const { concertId, reviewContent, setData } = useReviewFormStore();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isInitialized, setIsInitialized] = useState(false);
   const { concert, isLoading, error } = useGetConcert(concertId || null);
@@ -69,17 +68,19 @@ export default function WriteReviewForm() {
 
   // 리다이렉트 useEffect - 초기화 완료 후에만 실행
   useEffect(() => {
+    // 컴포넌트가 마운트될 때 한 번만 실행되도록
     if (isInitialized && !concertId) {
       router.push("/new/select-concert");
     }
-  }, [isInitialized, concertId, router]);
+    // 의존성 배열을 빈 배열로 설정하되 린터 경고 무시
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const onSubmit = async (data: WriteReviewFormValues) => {
     if (!concertId) return;
 
     setIsSubmitting(true);
     try {
-      // 현재 로그인한 사용자 정보 가져오기
       const {
         data: { user },
       } = await supabase.auth.getUser();
@@ -92,8 +93,7 @@ export default function WriteReviewForm() {
         .from("reviews")
         .insert({
           user_id: user.id,
-          [isPendingConcert ? "pending_concert_id" : "verified_concert_id"]:
-            concertId,
+          concert_id: concertId,
           content: data.reviewContent,
           created_at: new Date().toISOString(),
         })
@@ -104,11 +104,13 @@ export default function WriteReviewForm() {
 
       toast.success("리뷰가 성공적으로 등록되었습니다");
 
-      // 스토어 초기화
-      useReviewFormStore.getState().reset();
+      // 먼저 생성된 리뷰 페이지로 리다이렉트
+      router.push(`/feed/${newReview.id}`);
 
-      // 생성된 리뷰 페이지로 리다이렉트
-      router.push(`/reviews/${newReview.id}`);
+      // 그 다음 스토어 초기화
+      setTimeout(() => {
+        useReviewFormStore.getState().reset();
+      }, 500);
     } catch (error) {
       console.error("리뷰 등록 실패:", error);
 

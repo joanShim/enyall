@@ -6,8 +6,6 @@ export const reviewFormSchema = z.object({
 
   // 리뷰 작성 단계
   reviewContent: z.string().min(10, "리뷰는 최소 10자 이상 작성해주세요"),
-
-  isPendingConcert: z.boolean().optional(),
 });
 
 // 새 콘서트 등록 스키마
