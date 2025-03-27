@@ -32,10 +32,10 @@ export default function MyReviewListItem({ review }: MyReviewListItemProps) {
   return (
     <Link
       href={`/feed/${review.id}`}
-      className="group flex flex-col gap-2 overflow-hidden border-y p-2 tracking-tight transition odd:border-r"
+      className="group flex flex-col gap-2 overflow-hidden border-b p-2 tracking-tight transition odd:border-r"
     >
       <div className="flex gap-2">
-        <div className="relative aspect-[3/4] w-1/3 overflow-hidden rounded-md bg-gray-100">
+        <div className="relative aspect-[3/4] w-1/3 overflow-hidden bg-gray-100">
           {concert.poster_url ? (
             <Image
               src={concert.poster_url}
