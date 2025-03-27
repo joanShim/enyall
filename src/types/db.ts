@@ -36,41 +36,6 @@ export type Database = {
         }
         Relationships: []
       }
-      artists_pending: {
-        Row: {
-          created_at: string | null
-          created_by: string | null
-          id: string
-          name_official: string
-          submitted_by: string | null
-          verified_artist_id: string | null
-        }
-        Insert: {
-          created_at?: string | null
-          created_by?: string | null
-          id?: string
-          name_official: string
-          submitted_by?: string | null
-          verified_artist_id?: string | null
-        }
-        Update: {
-          created_at?: string | null
-          created_by?: string | null
-          id?: string
-          name_official?: string
-          submitted_by?: string | null
-          verified_artist_id?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "artists_pending_verified_artist_id_fkey"
-            columns: ["verified_artist_id"]
-            isOneToOne: false
-            referencedRelation: "artists"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       concert_schedules: {
         Row: {
           concert_id: string | null
@@ -102,44 +67,6 @@ export type Database = {
             columns: ["concert_id"]
             isOneToOne: false
             referencedRelation: "concerts"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      concert_schedules_pending: {
-        Row: {
-          concert_id: string | null
-          created_at: string | null
-          created_by: string | null
-          id: string
-          schedule_date: string
-          start_time: string | null
-          status: string | null
-        }
-        Insert: {
-          concert_id?: string | null
-          created_at?: string | null
-          created_by?: string | null
-          id?: string
-          schedule_date: string
-          start_time?: string | null
-          status?: string | null
-        }
-        Update: {
-          concert_id?: string | null
-          created_at?: string | null
-          created_by?: string | null
-          id?: string
-          schedule_date?: string
-          start_time?: string | null
-          status?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "concert_schedules_pending_concert_id_fkey"
-            columns: ["concert_id"]
-            isOneToOne: false
-            referencedRelation: "concerts_pending"
             referencedColumns: ["id"]
           },
         ]
@@ -186,6 +113,13 @@ export type Database = {
             referencedRelation: "tours"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "fk_venue"
+            columns: ["venue_id"]
+            isOneToOne: false
+            referencedRelation: "venues"
+            referencedColumns: ["id"]
+          },
         ]
       }
       concerts_artists: {
@@ -227,153 +161,9 @@ export type Database = {
           },
         ]
       }
-      concerts_artists_pending: {
-        Row: {
-          artist_id: string | null
-          artist_pending_id: string | null
-          concert_id: string | null
-          concert_pending_id: string | null
-          created_at: string | null
-          created_by: string | null
-          id: string
-          start_time: string | null
-          status: string | null
-        }
-        Insert: {
-          artist_id?: string | null
-          artist_pending_id?: string | null
-          concert_id?: string | null
-          concert_pending_id?: string | null
-          created_at?: string | null
-          created_by?: string | null
-          id?: string
-          start_time?: string | null
-          status?: string | null
-        }
-        Update: {
-          artist_id?: string | null
-          artist_pending_id?: string | null
-          concert_id?: string | null
-          concert_pending_id?: string | null
-          created_at?: string | null
-          created_by?: string | null
-          id?: string
-          start_time?: string | null
-          status?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "concerts_artists_pending_artist_id_fkey"
-            columns: ["artist_id"]
-            isOneToOne: false
-            referencedRelation: "artists"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "concerts_artists_pending_artist_pending_id_fkey"
-            columns: ["artist_pending_id"]
-            isOneToOne: false
-            referencedRelation: "artists_pending"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "concerts_artists_pending_concert_id_fkey"
-            columns: ["concert_id"]
-            isOneToOne: false
-            referencedRelation: "concerts"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "concerts_artists_pending_concert_pending_id_fkey"
-            columns: ["concert_pending_id"]
-            isOneToOne: false
-            referencedRelation: "concerts_pending"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      concerts_pending: {
-        Row: {
-          artists_json: Json | null
-          concert_date: string
-          created_at: string | null
-          created_by: string | null
-          id: string
-          poster_url: string | null
-          start_time: string | null
-          submitted_by: string | null
-          ticket_link: string | null
-          title: string
-          tour_id: string | null
-          updated_at: string | null
-          venue_id: string | null
-          venue_pending_id: string | null
-          verified_concert_id: string | null
-        }
-        Insert: {
-          artists_json?: Json | null
-          concert_date: string
-          created_at?: string | null
-          created_by?: string | null
-          id?: string
-          poster_url?: string | null
-          start_time?: string | null
-          submitted_by?: string | null
-          ticket_link?: string | null
-          title: string
-          tour_id?: string | null
-          updated_at?: string | null
-          venue_id?: string | null
-          venue_pending_id?: string | null
-          verified_concert_id?: string | null
-        }
-        Update: {
-          artists_json?: Json | null
-          concert_date?: string
-          created_at?: string | null
-          created_by?: string | null
-          id?: string
-          poster_url?: string | null
-          start_time?: string | null
-          submitted_by?: string | null
-          ticket_link?: string | null
-          title?: string
-          tour_id?: string | null
-          updated_at?: string | null
-          venue_id?: string | null
-          venue_pending_id?: string | null
-          verified_concert_id?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "concerts_pending_venue_id_fkey"
-            columns: ["venue_id"]
-            isOneToOne: false
-            referencedRelation: "venues"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "concerts_pending_venue_pending_id_fkey"
-            columns: ["venue_pending_id"]
-            isOneToOne: false
-            referencedRelation: "venues_pending"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "concerts_pending_verified_concert_id_fkey"
-            columns: ["verified_concert_id"]
-            isOneToOne: false
-            referencedRelation: "concerts"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       reviews: {
         Row: {
           artist_id: string | null
-          artist_pending_id: string | null
-          concert_id: string | null
-          concert_pending_id: string | null
           content: string
           created_at: string | null
           id: string
@@ -383,9 +173,6 @@ export type Database = {
         }
         Insert: {
           artist_id?: string | null
-          artist_pending_id?: string | null
-          concert_id?: string | null
-          concert_pending_id?: string | null
           content: string
           created_at?: string | null
           id?: string
@@ -395,9 +182,6 @@ export type Database = {
         }
         Update: {
           artist_id?: string | null
-          artist_pending_id?: string | null
-          concert_id?: string | null
-          concert_pending_id?: string | null
           content?: string
           created_at?: string | null
           id?: string
@@ -411,27 +195,6 @@ export type Database = {
             columns: ["artist_id"]
             isOneToOne: false
             referencedRelation: "artists"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "reviews_artist_pending_id_fkey"
-            columns: ["artist_pending_id"]
-            isOneToOne: false
-            referencedRelation: "artists_pending"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "reviews_concert_id_fkey"
-            columns: ["concert_id"]
-            isOneToOne: false
-            referencedRelation: "concerts"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "reviews_concert_pending_id_fkey"
-            columns: ["concert_pending_id"]
-            isOneToOne: false
-            referencedRelation: "concerts_pending"
             referencedColumns: ["id"]
           },
         ]
@@ -525,44 +288,6 @@ export type Database = {
           updated_at?: string | null
         }
         Relationships: []
-      }
-      venues_pending: {
-        Row: {
-          address: string
-          created_at: string | null
-          created_by: string | null
-          id: string
-          name: string
-          submitted_by: string | null
-          verified_venue_id: string | null
-        }
-        Insert: {
-          address: string
-          created_at?: string | null
-          created_by?: string | null
-          id?: string
-          name: string
-          submitted_by?: string | null
-          verified_venue_id?: string | null
-        }
-        Update: {
-          address?: string
-          created_at?: string | null
-          created_by?: string | null
-          id?: string
-          name?: string
-          submitted_by?: string | null
-          verified_venue_id?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "venues_pending_verified_venue_id_fkey"
-            columns: ["verified_venue_id"]
-            isOneToOne: false
-            referencedRelation: "venues"
-            referencedColumns: ["id"]
-          },
-        ]
       }
     }
     Views: {

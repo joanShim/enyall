@@ -42,7 +42,6 @@ export default function NewConcertForm() {
 
   const createNewArtist = async (name: string): Promise<string | null> => {
     try {
-      // 현재 사용자 정보 가져오기
       const {
         data: { user },
       } = await supabase.auth.getUser();
@@ -53,7 +52,7 @@ export default function NewConcertForm() {
       }
 
       const { data, error } = await supabase
-        .from("artists_pending")
+        .from("artists")
         .insert({
           name_official: name,
           created_by: user.id,
@@ -74,7 +73,6 @@ export default function NewConcertForm() {
 
   const createNewVenue = async (name: string): Promise<string | null> => {
     try {
-      // 현재 사용자 정보 가져오기
       const {
         data: { user },
       } = await supabase.auth.getUser();
@@ -85,7 +83,7 @@ export default function NewConcertForm() {
       }
 
       const { data, error } = await supabase
-        .from("venues_pending")
+        .from("venues")
         .insert({
           name,
           address: "", // 빈 주소로 설정
@@ -123,9 +121,9 @@ export default function NewConcertForm() {
         throw new Error("로그인이 필요합니다");
       }
 
-      // 1. concerts_pending에 먼저 등록
+      // concerts 테이블에 등록
       const { data: newConcert, error: concertError } = await supabase
-        .from("concerts_pending")
+        .from("concerts")
         .insert({
           title: data.title,
           venue_id: data.venueId,
@@ -139,25 +137,24 @@ export default function NewConcertForm() {
 
       if (concertError) throw concertError;
 
-      // 2. concerts_artists_pending에 concert_pending_id로만 연결
+      // concerts_artists 테이블에 연결
       const { error: artistError } = await supabase
-        .from("concerts_artists_pending")
+        .from("concerts_artists")
         .insert({
-          concert_pending_id: newConcert.id,
+          concert_id: newConcert.id,
           artist_id: data.artistId,
           created_by: user.id,
           start_time: data.startTime,
-          status: "pending",
+          status: "approved", // 바로 승인된 상태로 변경
         });
 
       if (artistError) throw artistError;
 
       toast.success("새 콘서트가 성공적으로 등록되었습니다");
 
-      // 스토어에 콘서트 ID와 isPendingConcert 플래그 저장
+      // 스토어에 콘서트 ID 저장
       setData({
         concertId: newConcert.id,
-        isPendingConcert: true, // 새로 추가
       });
 
       // 리뷰 작성 페이지로 이동

@@ -5,6 +5,7 @@ import Link from "next/link";
 import CreateReviewButton from "./CreateReviewButton";
 import { getUserProfileWithFavorites } from "@/actions/user-actions";
 import Favorites from "./Favorites";
+import MyReviewList from "./MyReviewList";
 
 export default async function MyPage() {
   const supabase = await createServerSupabaseClient();
@@ -53,6 +54,7 @@ export default async function MyPage() {
           <Favorites artists={favoriteArtists} />
         )}
       </section>
+      <MyReviewList />
     </>
   );
 }
