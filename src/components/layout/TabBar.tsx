@@ -3,7 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
-import { Home, Search } from "lucide-react";
+import { Home, Search, User } from "lucide-react";
 import { useEffect, useState } from "react";
 import { createBrowserSupabaseClient } from "@/utils/supabase/client";
 import { Tables } from "@/types/db";
@@ -24,9 +24,11 @@ const navItems = [
 export default function TabBar() {
   const pathname = usePathname();
   const [userProfile, setUserProfile] = useState<Tables<"users"> | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
   const supabase = createBrowserSupabaseClient();
 
   const getUserData = async () => {
+    setIsLoading(true);
     const {
       data: { user },
     } = await supabase.auth.getUser();
@@ -41,11 +43,12 @@ export default function TabBar() {
 
       setUserProfile(profile);
     }
+    setIsLoading(false);
   };
 
   useEffect(() => {
     getUserData();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (
@@ -71,31 +74,47 @@ export default function TabBar() {
           </Link>
         );
       })}
-      <Link
-        href="/my"
-        className={`flex h-full w-full flex-col items-center justify-center ${
-          pathname === "/my" ? "font-bold" : "font-normal"
-        }`}
-      >
-        {userProfile?.avatar_url ? (
-          <div
-            className={`relative h-5 w-5 overflow-hidden rounded-full border ${
-              pathname === "/my" ? "border-2" : "border-1"
-            }`}
-          >
-            <Image
-              src={userProfile.avatar_url}
-              alt="프로필 이미지"
-              fill
-              sizes="20px"
-              className="object-cover"
-            />
-          </div>
-        ) : (
-          <div className="size-5 rounded-full border bg-gray-200" />
-        )}
-        <span className="mt-1 text-xs">마이</span>
-      </Link>
+
+      {isLoading ? (
+        <div className="flex h-full w-full flex-col items-center justify-center">
+          <div className="size-5 animate-pulse rounded-full bg-gray-200" />
+          <span className="mt-1 text-xs">마이</span>
+        </div>
+      ) : userProfile ? (
+        <Link
+          href="/my"
+          className={`flex h-full w-full flex-col items-center justify-center ${
+            pathname === "/my" ? "font-bold" : "font-normal"
+          }`}
+        >
+          {userProfile.avatar_url ? (
+            <div
+              className={`relative h-5 w-5 overflow-hidden rounded-full border ${
+                pathname === "/my" ? "border-2" : "border-1"
+              }`}
+            >
+              <Image
+                src={userProfile.avatar_url}
+                alt="프로필 이미지"
+                fill
+                sizes="20px"
+                className="object-cover"
+              />
+            </div>
+          ) : (
+            <div className="size-5 rounded-full border bg-gray-200" />
+          )}
+          <span className="mt-1 text-xs">마이</span>
+        </Link>
+      ) : (
+        <Link
+          href="/auth/signIn"
+          className="flex h-full w-full flex-col items-center justify-center"
+        >
+          <User size={20} className="text-gray-500" />
+          <span className="mt-1 text-xs">로그인</span>
+        </Link>
+      )}
     </nav>
   );
 }
