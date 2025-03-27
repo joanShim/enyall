@@ -22,7 +22,8 @@ type WriteReviewFormValues = z.infer<typeof writeReviewSchema>;
 
 export default function WriteReviewForm() {
   const router = useRouter();
-  const { concertId, reviewContent, setData } = useReviewFormStore();
+  const { concertId, reviewContent, isPendingConcert, setData } =
+    useReviewFormStore();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isInitialized, setIsInitialized] = useState(false);
   const { concert, isLoading, error } = useGetConcert(concertId || null);
@@ -87,13 +88,17 @@ export default function WriteReviewForm() {
         throw new Error("로그인이 필요합니다");
       }
 
-      // 리뷰 추가
-      const { error } = await supabase.from("reviews").insert({
-        user_id: user.id,
-        concert_id: concertId,
-        content: data.reviewContent,
-        created_at: new Date().toISOString(),
-      });
+      const { data: newReview, error } = await supabase
+        .from("reviews")
+        .insert({
+          user_id: user.id,
+          [isPendingConcert ? "pending_concert_id" : "verified_concert_id"]:
+            concertId,
+          content: data.reviewContent,
+          created_at: new Date().toISOString(),
+        })
+        .select("id")
+        .single();
 
       if (error) throw error;
 
@@ -102,8 +107,8 @@ export default function WriteReviewForm() {
       // 스토어 초기화
       useReviewFormStore.getState().reset();
 
-      // 홈으로 리다이렉트
-      router.push("/");
+      // 생성된 리뷰 페이지로 리다이렉트
+      router.push(`/reviews/${newReview.id}`);
     } catch (error) {
       console.error("리뷰 등록 실패:", error);
 

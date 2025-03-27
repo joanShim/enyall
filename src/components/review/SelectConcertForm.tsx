@@ -1,5 +1,6 @@
 "use client";
 
+import { Suspense } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Search, Plus, MapPin } from "lucide-react";
@@ -11,7 +12,7 @@ import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { useQueryState } from "nuqs";
 
-export default function SelectConcertForm() {
+function SelectConcertFormContent() {
   const router = useRouter();
   const { setData } = useReviewFormStore();
   const [searchQuery, setSearchQuery] = useQueryState("search");
@@ -138,5 +139,26 @@ export default function SelectConcertForm() {
         <Plus className="mr-2 h-4 w-4" />새 콘서트 등록
       </Button>
     </div>
+  );
+}
+
+export default function SelectConcertForm() {
+  return (
+    <Suspense
+      fallback={
+        <div className="space-y-4">
+          <div className="relative">
+            <Skeleton className="h-10 w-full" />
+          </div>
+          <div className="space-y-4">
+            {[...Array(3)].map((_, i) => (
+              <Skeleton key={i} className="h-24 w-full rounded-md" />
+            ))}
+          </div>
+        </div>
+      }
+    >
+      <SelectConcertFormContent />
+    </Suspense>
   );
 }

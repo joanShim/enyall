@@ -7,7 +7,6 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { DatePicker } from "@/components/ui/date-picker";
 import { EntitySelector } from "@/components/review/EntitySelector";
 import { useGetArtists } from "@/hooks/useGetArtists";
 import { useGetVenues } from "@/hooks/useGetVenues";
@@ -16,6 +15,8 @@ import { toast } from "sonner";
 import { useReviewFormStore } from "@/store/reviewFormStore";
 import { newConcertSchema } from "@/schemas/reviewForm";
 import type { NewConcertFormSchema } from "@/schemas/reviewForm";
+import TimePicker from "../ui/time-picker";
+import DateInput from "../ui/date-input";
 
 export default function NewConcertForm() {
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -29,11 +30,13 @@ export default function NewConcertForm() {
     control,
     handleSubmit,
     formState: { errors },
+    setValue,
   } = useForm<NewConcertFormSchema>({
     resolver: zodResolver(newConcertSchema),
     defaultValues: {
       title: "",
       concertDate: undefined,
+      startTime: "19:00", // 기본값 설정
     },
   });
 
@@ -102,10 +105,16 @@ export default function NewConcertForm() {
     }
   };
 
+  const getDefaultTime = (date: Date) => {
+    const day = date.getDay();
+    if (day === 0) return "17:00"; // 일요일
+    if (day === 6) return "18:00"; // 토요일
+    return "19:00"; // 평일
+  };
+
   const onSubmit = async (data: NewConcertFormSchema) => {
     setIsSubmitting(true);
     try {
-      // 현재 사용자 정보 가져오기
       const {
         data: { user },
       } = await supabase.auth.getUser();
@@ -114,37 +123,42 @@ export default function NewConcertForm() {
         throw new Error("로그인이 필요합니다");
       }
 
-      // 콘서트 추가
+      // 1. concerts_pending에 먼저 등록
       const { data: newConcert, error: concertError } = await supabase
         .from("concerts_pending")
         .insert({
           title: data.title,
           venue_id: data.venueId,
           concert_date: data.concertDate.toISOString(),
-          start_time: "19:00:00", // 기본값 설정
+          start_time: data.startTime,
           created_by: user.id,
+          submitted_by: user.id,
         })
         .select("id")
         .single();
 
       if (concertError) throw concertError;
 
-      // 콘서트-아티스트 연결 추가
-      const { error: scheduleError } = await supabase
+      // 2. concerts_artists_pending에 concert_pending_id로만 연결
+      const { error: artistError } = await supabase
         .from("concerts_artists_pending")
         .insert({
-          concert_id: newConcert.id,
+          concert_pending_id: newConcert.id,
           artist_id: data.artistId,
           created_by: user.id,
-          start_time: "19:00:00", // 기본값 설정
+          start_time: data.startTime,
+          status: "pending",
         });
 
-      if (scheduleError) throw scheduleError;
+      if (artistError) throw artistError;
 
       toast.success("새 콘서트가 성공적으로 등록되었습니다");
 
-      // 스토어에 콘서트 ID 저장
-      setData({ concertId: newConcert.id });
+      // 스토어에 콘서트 ID와 isPendingConcert 플래그 저장
+      setData({
+        concertId: newConcert.id,
+        isPendingConcert: true, // 새로 추가
+      });
 
       // 리뷰 작성 페이지로 이동
       router.push("/new/write-review");
@@ -168,77 +182,104 @@ export default function NewConcertForm() {
   return (
     <form onSubmit={handleSubmit(onSubmit)}>
       <div className="space-y-6">
-        <div className="space-y-4 rounded-md border p-6">
-          <div className="space-y-2">
-            <Label htmlFor="title">콘서트 제목</Label>
-            <Controller
-              name="title"
-              control={control}
-              render={({ field }) => (
-                <Input
-                  {...field}
-                  placeholder="콘서트 제목을 입력하세요"
-                  disabled={isSubmitting}
-                />
-              )}
-            />
-            {errors.title && (
-              <p className="text-sm text-red-500">{errors.title.message}</p>
-            )}
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="concertDate">콘서트 날짜</Label>
-            <Controller
-              name="concertDate"
-              control={control}
-              render={({ field }) => (
-                <DatePicker
-                  date={field.value}
-                  onDateChange={field.onChange}
-                  disabled={isSubmitting}
-                  placeholder="콘서트 날짜 선택"
-                />
-              )}
-            />
-            {errors.concertDate && (
-              <p className="text-sm text-red-500">
-                {errors.concertDate.message}
-              </p>
-            )}
-          </div>
-
-          <EntitySelector
-            type="artist"
-            label="아티스트"
+        <div className="space-y-2">
+          <Label htmlFor="title">콘서트 제목</Label>
+          <Controller
+            name="title"
             control={control}
-            entities={artists.map((a) => ({
-              id: a.id,
-              name: a.name_official || "",
-            }))}
-            isLoading={isLoadingArtists}
-            onCreateNew={createNewArtist}
-            newEntityFieldName="newArtistName"
-            entityIdFieldName="artistId"
+            render={({ field }) => (
+              <Input
+                {...field}
+                placeholder="콘서트 제목을 입력하세요"
+                disabled={isSubmitting}
+              />
+            )}
           />
-          {errors.artistId && (
-            <p className="text-sm text-red-500">{errors.artistId.message}</p>
-          )}
-
-          <EntitySelector
-            type="venue"
-            label="공연장"
-            control={control}
-            entities={venues.map((v) => ({ id: v.id, name: v.name }))}
-            isLoading={isLoadingVenues}
-            onCreateNew={createNewVenue}
-            newEntityFieldName="newVenueName"
-            entityIdFieldName="venueId"
-          />
-          {errors.venueId && (
-            <p className="text-sm text-red-500">{errors.venueId.message}</p>
+          {errors.title && (
+            <p className="text-sm text-red-500">{errors.title.message}</p>
           )}
         </div>
+
+        <div className="space-y-2">
+          <Label>일자</Label>
+          <div className="flex gap-4">
+            <div className="flex-1">
+              <Controller
+                name="concertDate"
+                control={control}
+                render={({ field }) => (
+                  <DateInput
+                    value={field.value}
+                    onChange={(date) => {
+                      field.onChange(date);
+                      if (date) {
+                        // 날짜가 변경되면 기본 시간 설정
+                        const defaultTime = getDefaultTime(date);
+                        setValue("startTime", defaultTime);
+                      }
+                    }}
+                    // disabled={isSubmitting}
+                  />
+                )}
+              />
+              {errors.concertDate && (
+                <p className="text-sm text-red-500">
+                  {errors.concertDate.message}
+                </p>
+              )}
+            </div>
+
+            <div className="flex-1">
+              <Controller
+                name="startTime"
+                control={control}
+                render={({ field }) => (
+                  <TimePicker
+                    value={field.value}
+                    onChange={field.onChange}
+                    disabled={isSubmitting}
+                  />
+                )}
+              />
+              {errors.startTime && (
+                <p className="text-sm text-red-500">
+                  {errors.startTime.message}
+                </p>
+              )}
+            </div>
+          </div>
+        </div>
+
+        <EntitySelector
+          type="artist"
+          label="아티스트"
+          control={control}
+          entities={artists.map((a) => ({
+            id: a.id,
+            name: a.name_official || "",
+          }))}
+          isLoading={isLoadingArtists}
+          onCreateNew={createNewArtist}
+          newEntityFieldName="newArtistName"
+          entityIdFieldName="artistId"
+        />
+        {errors.artistId && (
+          <p className="text-sm text-red-500">{errors.artistId.message}</p>
+        )}
+
+        <EntitySelector
+          type="venue"
+          label="공연장"
+          control={control}
+          entities={venues.map((v) => ({ id: v.id, name: v.name }))}
+          isLoading={isLoadingVenues}
+          onCreateNew={createNewVenue}
+          newEntityFieldName="newVenueName"
+          entityIdFieldName="venueId"
+        />
+        {errors.venueId && (
+          <p className="text-sm text-red-500">{errors.venueId.message}</p>
+        )}
 
         <div className="flex gap-2">
           <Button type="submit" className="flex-1" disabled={isSubmitting}>

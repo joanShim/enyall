@@ -236,6 +236,7 @@ export type Database = {
           created_at: string | null
           created_by: string | null
           id: string
+          start_time: string | null
           status: string | null
         }
         Insert: {
@@ -246,6 +247,7 @@ export type Database = {
           created_at?: string | null
           created_by?: string | null
           id?: string
+          start_time?: string | null
           status?: string | null
         }
         Update: {
@@ -256,6 +258,7 @@ export type Database = {
           created_at?: string | null
           created_by?: string | null
           id?: string
+          start_time?: string | null
           status?: string | null
         }
         Relationships: [
@@ -296,8 +299,13 @@ export type Database = {
           created_at: string | null
           created_by: string | null
           id: string
+          poster_url: string | null
+          start_time: string | null
           submitted_by: string | null
+          ticket_link: string | null
           title: string
+          tour_id: string | null
+          updated_at: string | null
           venue_id: string | null
           venue_pending_id: string | null
           verified_concert_id: string | null
@@ -308,8 +316,13 @@ export type Database = {
           created_at?: string | null
           created_by?: string | null
           id?: string
+          poster_url?: string | null
+          start_time?: string | null
           submitted_by?: string | null
+          ticket_link?: string | null
           title: string
+          tour_id?: string | null
+          updated_at?: string | null
           venue_id?: string | null
           venue_pending_id?: string | null
           verified_concert_id?: string | null
@@ -320,8 +333,13 @@ export type Database = {
           created_at?: string | null
           created_by?: string | null
           id?: string
+          poster_url?: string | null
+          start_time?: string | null
           submitted_by?: string | null
+          ticket_link?: string | null
           title?: string
+          tour_id?: string | null
+          updated_at?: string | null
           venue_id?: string | null
           venue_pending_id?: string | null
           verified_concert_id?: string | null
