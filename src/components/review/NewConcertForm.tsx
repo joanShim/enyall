@@ -121,21 +121,28 @@ export default function NewConcertForm() {
         throw new Error("로그인이 필요합니다");
       }
 
-      // concerts 테이블에 등록
+      // concerts 테이블에 등록 (스키마에 맞게 필드 조정)
       const { data: newConcert, error: concertError } = await supabase
         .from("concerts")
         .insert({
           title: data.title,
           venue_id: data.venueId,
-          concert_date: data.concertDate.toISOString(),
-          start_time: data.startTime,
-          created_by: user.id,
-          submitted_by: user.id,
         })
         .select("id")
         .single();
 
       if (concertError) throw concertError;
+
+      // concert_schedules 테이블에 일정 등록
+      const { error: scheduleError } = await supabase
+        .from("concert_schedules")
+        .insert({
+          concert_id: newConcert.id,
+          schedule_date: data.concertDate.toISOString().split("T")[0], // YYYY-MM-DD 형식
+          start_time: data.startTime,
+        });
+
+      if (scheduleError) throw scheduleError;
 
       // concerts_artists 테이블에 연결
       const { error: artistError } = await supabase
@@ -143,9 +150,6 @@ export default function NewConcertForm() {
         .insert({
           concert_id: newConcert.id,
           artist_id: data.artistId,
-          created_by: user.id,
-          start_time: data.startTime,
-          status: "approved", // 바로 승인된 상태로 변경
         });
 
       if (artistError) throw artistError;
