@@ -2,7 +2,13 @@ import { createServerClient } from "@supabase/ssr";
 import { type NextRequest, NextResponse } from "next/server";
 
 // 공개 경로 (로그인 여부와 상관없이 접근 가능한 경로)
-const publicPaths = ["/auth/signIn", "/auth/signup", "/auth/callback"];
+const publicPaths = [
+  "/auth/signIn",
+  "/auth/signup",
+  "/auth/callback",
+  "/feed",
+  "/browse",
+];
 
 export const applyMiddlewareSupabaseClient = async (request: NextRequest) => {
   // Create an unmodified response
@@ -74,7 +80,7 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(redirectUrl);
   }
 
-  if (session && isPublicPath) {
+  if (session && (pathname === "/auth/signIn" || pathname === "/auth/signup")) {
     return NextResponse.redirect(new URL("/my", request.url));
   }
 

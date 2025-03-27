@@ -2,7 +2,8 @@ import type { Metadata } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
 import QueryProvider from "@/providers/query-provider";
-
+import { NuqsAdapter } from "nuqs/adapters/next/app";
+import TabBar from "@/components/layout/TabBar";
 const pretendard = localFont({
   src: "../fonts/PretendardVariable.woff2",
   display: "swap",
@@ -22,13 +23,16 @@ export default function RootLayout({
 }>) {
   return (
     <QueryProvider>
-      <html lang="ko">
-        <body className={`${pretendard.variable} antialiased`}>
-          <main className="relative mx-auto min-h-screen max-w-md pb-16 shadow-xl">
-            {children}
-          </main>
-        </body>
-      </html>
+      <NuqsAdapter>
+        <html lang="ko">
+          <body className={`${pretendard.variable} antialiased`}>
+            <main className="relative mx-auto min-h-screen max-w-md pb-16 shadow-xl">
+              {children}
+            </main>
+            <TabBar />
+          </body>
+        </html>
+      </NuqsAdapter>
     </QueryProvider>
   );
 }

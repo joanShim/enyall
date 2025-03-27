@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
 import { ChevronsUpDown } from "lucide-react";
 import { Input } from "@/components/ui/input";
@@ -14,21 +13,21 @@ import { Button } from "@/components/ui/button";
 import { Artist } from "@/types/artist";
 
 interface ArtistSelectorProps {
-  artists: Artist[];
   initialSelectedArtists?: Artist[];
   onChange?: (artists: Artist[]) => void;
   maxSelections?: number;
   label?: string;
   name?: string;
+  artists: Artist[];
 }
 
 export function ArtistSelector({
-  artists,
   initialSelectedArtists = [],
   onChange,
   maxSelections = 5,
   label = "관심 아티스트",
   name = "selectedArtists",
+  artists,
 }: ArtistSelectorProps) {
   const [open, setOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
@@ -36,6 +35,11 @@ export function ArtistSelector({
     initialSelectedArtists,
   );
   const inputRef = useRef<HTMLInputElement>(null);
+
+  // initialSelectedArtists prop이 변경될 때 내부 상태 업데이트
+  useEffect(() => {
+    setSelectedArtists(initialSelectedArtists);
+  }, [initialSelectedArtists]);
 
   // 선택된 아티스트가 변경될 때 onChange 콜백 호출
   useEffect(() => {
@@ -51,7 +55,7 @@ export function ArtistSelector({
 
   // 검색어에 따라 필터링된 아티스트 목록
   const filteredArtists = availableArtists.filter((artist) =>
-    artist.official_name.toLowerCase().includes(searchTerm.toLowerCase()),
+    artist.name_official.toLowerCase().includes(searchTerm.toLowerCase()),
   );
 
   // 아티스트 선택 처리
@@ -61,13 +65,6 @@ export function ArtistSelector({
       setSearchTerm("");
       setOpen(false);
     }
-  };
-
-  // 선택된 아티스트 제거
-  const handleRemoveArtist = (artistId: string) => {
-    setSelectedArtists(
-      selectedArtists.filter((artist) => artist.id !== artistId),
-    );
   };
 
   // 팝오버가 열릴 때 input에 포커스
@@ -115,7 +112,7 @@ export function ArtistSelector({
                       className="flex cursor-pointer items-center justify-between px-3 py-2 hover:bg-gray-100"
                       onClick={() => handleSelectArtist(artist)}
                     >
-                      {artist.official_name}
+                      {artist.name_official}
                     </div>
                   ))}
                 </div>
@@ -130,22 +127,6 @@ export function ArtistSelector({
           </div>
         </PopoverContent>
       </Popover>
-
-      {/* 선택된 아티스트 뱃지 */}
-      {selectedArtists.length > 0 && (
-        <div className="mt-2 flex flex-wrap gap-2">
-          {selectedArtists.map((artist) => (
-            <Badge
-              key={artist.id}
-              variant="outline"
-              className="flex cursor-pointer items-center gap-1"
-              onClick={() => handleRemoveArtist(artist.id)}
-            >
-              {artist.korean_name || artist.official_name}
-            </Badge>
-          ))}
-        </div>
-      )}
 
       {selectedArtists.length >= maxSelections && (
         <p className="mt-1 text-sm text-amber-600">

@@ -24,7 +24,7 @@ export default function SignInWithKakao() {
   };
 
   return (
-    <section className="flex justify-center">
+    <section className="flex w-full justify-center">
       <Button
         // variant="outline"
         className="bg-[#fee601] text-[#191500]"
