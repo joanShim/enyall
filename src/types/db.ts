@@ -164,6 +164,7 @@ export type Database = {
       reviews: {
         Row: {
           artist_id: string | null
+          concert_id: string | null
           content: string
           created_at: string | null
           id: string
@@ -173,6 +174,7 @@ export type Database = {
         }
         Insert: {
           artist_id?: string | null
+          concert_id?: string | null
           content: string
           created_at?: string | null
           id?: string
@@ -182,6 +184,7 @@ export type Database = {
         }
         Update: {
           artist_id?: string | null
+          concert_id?: string | null
           content?: string
           created_at?: string | null
           id?: string
@@ -195,6 +198,13 @@ export type Database = {
             columns: ["artist_id"]
             isOneToOne: false
             referencedRelation: "artists"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reviews_concert_id_fkey"
+            columns: ["concert_id"]
+            isOneToOne: false
+            referencedRelation: "concerts"
             referencedColumns: ["id"]
           },
         ]
