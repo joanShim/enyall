@@ -2,7 +2,8 @@ import { getArtists } from "@/actions/update-profile-actions";
 import SignOutButton from "@/components/auth/SignOutButton";
 import { createServerSupabaseClient } from "@/utils/supabase/server";
 import { redirect } from "next/navigation";
-import ProfileForm from "./ProfileForm";
+import { ProfileForm } from "./ProfileForm";
+import { ProfileAvatar } from "./ProfileAvatar";
 
 export default async function ProfileSettingsPage() {
   const supabase = await createServerSupabaseClient();
@@ -23,20 +24,22 @@ export default async function ProfileSettingsPage() {
   // 사용자의 favorites 데이터 가져오기
   const { data: userData, error: userError } = await supabase
     .from("users")
-    .select("favorites")
+    .select("*")
     .eq("id", user.id)
     .single();
 
   if (userError) {
-    console.error("사용자 데이터를 불러오는데 실패했습니다:", userError);
+    console.error("사용자 프로필을 불러오는데 실패했습니다:", userError);
+    return <div>사용자 프로필을 불러오는데 실패했습니다.</div>;
   }
 
-  const userFavorites = userData?.favorites || [];
+  const userFavorites = userData.favorites || [];
 
   return (
-    <section className="flex w-full flex-col items-center gap-2 p-4">
+    <section className="flex w-full flex-col items-center gap-6 p-4">
+      <ProfileAvatar avatarUrl={userData.avatar_url} />
       <ProfileForm
-        user={user}
+        user={userData}
         artists={artists || []}
         userFavorites={userFavorites}
       />
