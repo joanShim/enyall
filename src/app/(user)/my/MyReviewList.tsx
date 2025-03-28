@@ -63,7 +63,7 @@ export default async function MyReviewList() {
 
   return (
     <section className="py-4">
-      <h2 className="ml-2 text-xl font-bold underline">기록</h2>
+      <h2 className="ml-2 text-xl font-bold">기록</h2>
       <div className="mt-4 grid grid-cols-2 border-t">
         {reviews.map((review) => (
           <MyReviewListItem key={review.id} review={review} />
