@@ -14,6 +14,7 @@ export const metadata: Metadata = {
   title: "엔열 ENYALL | 콘서트 리뷰 아카이브",
   description:
     "즐거웠던 시간을 기록하고 공유하는 콘서트 리뷰 아카이브 | 공연장 시야 정보 | 콘서트 후기",
+  icons: "/favicon.ico",
 };
 
 export default function RootLayout({
