@@ -3,7 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
-import { Home, Search, User } from "lucide-react";
+import { Globe, Search, User } from "lucide-react";
 import { useEffect, useState } from "react";
 import { createBrowserSupabaseClient } from "@/utils/supabase/client";
 import { Tables } from "@/types/db";
@@ -12,7 +12,7 @@ const navItems = [
   {
     label: "피드",
     href: "/feed",
-    icon: Home,
+    icon: Globe,
   },
   {
     label: "검색",
