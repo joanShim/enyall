@@ -1,13 +1,12 @@
 import { createServerClient } from "@supabase/ssr";
 import { type NextRequest, NextResponse } from "next/server";
-
-// 공개 경로 (로그인 여부와 상관없이 접근 가능한 경로)
-const publicPaths = [
-  "/auth/signIn",
-  "/auth/signup",
-  "/auth/callback",
-  "/feed",
-  "/browse",
+// PWA 관련 파일 및 정적 자산
+const staticAssets = [
+  "/sw.js",
+  "/manifest.json",
+  "/offline.html",
+  "/icons/",
+  "/favicon.ico",
 ];
 
 export const applyMiddlewareSupabaseClient = async (request: NextRequest) => {
@@ -63,7 +62,23 @@ export const applyMiddlewareSupabaseClient = async (request: NextRequest) => {
 export async function middleware(request: NextRequest) {
   // 현재 요청 경로 가져오기
   const { pathname } = request.nextUrl;
-  const isPublicPath = publicPaths.includes(pathname);
+
+  // ✅ 정적 자산 요청은 그대로 통과
+  if (
+    staticAssets.some(
+      (asset) => pathname.startsWith(asset) || pathname === asset,
+    )
+  ) {
+    return NextResponse.next();
+  }
+
+  // /my 경로의 사용자 관련 경로인 경우에만 인증 확인
+  const isUserPath = pathname.startsWith("/my") || pathname.startsWith("/new");
+
+  // 인증 확인이 필요한 경로가 아니면 바로 통과
+  if (!isUserPath && !pathname.startsWith("/auth")) {
+    return NextResponse.next();
+  }
 
   // 미들웨어 적용하여 응답 및 supabase 클라이언트 가져오기
   const { response, supabase } = await applyMiddlewareSupabaseClient(request);
@@ -74,7 +89,7 @@ export async function middleware(request: NextRequest) {
   } = await supabase.auth.getSession();
 
   // 리다이렉트 로직
-  if (!session && !isPublicPath) {
+  if (!session && isUserPath) {
     const redirectUrl = new URL("/auth/signIn", request.url);
     redirectUrl.searchParams.set("redirectTo", pathname);
     return NextResponse.redirect(redirectUrl);
@@ -94,7 +109,7 @@ export const config = {
      * - _next/static (static files)
      * - _next/image (image optimization files)
      * - favicon.ico (favicon file)
-     * Feel free to modify this pattern to include more paths.
+     * - 이미지 파일 확장자들 (.svg, .png, .jpg, .jpeg, .gif, .webp)
      */
     "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
   ],
