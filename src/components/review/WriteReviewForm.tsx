@@ -5,6 +5,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
 import { Textarea } from "@/components/ui/textarea";
+import { Button } from "@/components/ui/button";
 import { ConcertInfo } from "@/components/review/ConcertInfo";
 import { useReviewFormStore } from "@/store/reviewFormStore";
 import { createBrowserSupabaseClient } from "@/utils/supabase/client";
@@ -12,6 +13,7 @@ import { toast } from "sonner";
 import { z } from "zod";
 import { reviewFormSchema } from "@/schemas/reviewForm";
 import { useGetConcert } from "@/hooks/useGetConcert";
+import { Review } from "@/types/review";
 
 // 리뷰 작성 단계에서 필요한 스키마만 추출
 const writeReviewSchema = reviewFormSchema.pick({
@@ -20,12 +22,30 @@ const writeReviewSchema = reviewFormSchema.pick({
 
 type WriteReviewFormValues = z.infer<typeof writeReviewSchema>;
 
-export default function WriteReviewForm() {
+interface WriteReviewFormProps {
+  isEditMode?: boolean;
+  initialReview?: Review;
+  onCancel?: () => void;
+  onSuccess?: (review: Review) => void;
+}
+
+export default function WriteReviewForm({
+  isEditMode = false,
+  initialReview,
+  onCancel,
+  onSuccess,
+}: WriteReviewFormProps) {
   const router = useRouter();
   const { concertId, reviewContent, setData } = useReviewFormStore();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isInitialized, setIsInitialized] = useState(false);
-  const { concert, isLoading, error } = useGetConcert(concertId || null);
+
+  // 수정 모드일 때는 초기 리뷰의 콘서트 ID를 사용
+  const effectiveConcertId = isEditMode
+    ? initialReview?.concert?.id || null
+    : concertId || null;
+
+  const { concert, isLoading, error } = useGetConcert(effectiveConcertId);
   const supabase = createBrowserSupabaseClient();
 
   const {
@@ -35,25 +55,28 @@ export default function WriteReviewForm() {
   } = useForm<WriteReviewFormValues>({
     resolver: zodResolver(writeReviewSchema),
     defaultValues: {
-      reviewContent: reviewContent || "",
+      reviewContent: isEditMode ? initialReview?.content : reviewContent || "",
     },
   });
 
-  // 로컬 스토리지 초기화 useEffect
+  // 수정 모드가 아닐 때만 로컬 스토리지 초기화 수행
   useEffect(() => {
-    // 이미 concertId가 있으면 초기화 완료 표시
+    if (isEditMode) {
+      setIsInitialized(true);
+      return;
+    }
+
+    // 로컬 스토리지 초기화 로직 (기존과 동일)
     if (concertId) {
       setIsInitialized(true);
       return;
     }
 
-    // 로컬 스토리지에서 데이터 확인
     const storedState = localStorage.getItem("review-form-store");
     if (storedState) {
       try {
         const parsedState = JSON.parse(storedState);
         if (parsedState.state?.concertId) {
-          // 스토어에 concertId 설정
           setData({ concertId: parsedState.state.concertId });
           setIsInitialized(true);
           return;
@@ -64,19 +87,28 @@ export default function WriteReviewForm() {
     }
 
     setIsInitialized(true);
-  }, [concertId, setData]);
+  }, [concertId, setData, isEditMode]);
 
-  // 리다이렉트 useEffect - 초기화 완료 후에만 실행
+  // 수정 모드가 아닐 때만 리다이렉트 수행
   useEffect(() => {
-    // 컴포넌트가 마운트될 때 한 번만 실행되도록
+    if (isEditMode) return;
+
     if (isInitialized && !concertId) {
       router.push("/new/select-concert");
     }
-    // 의존성 배열을 빈 배열로 설정하되 린터 경고 무시
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [isInitialized, concertId, isEditMode]);
 
   const onSubmit = async (data: WriteReviewFormValues) => {
+    if (isEditMode && initialReview) {
+      await handleUpdate(data);
+    } else {
+      await handleCreate(data);
+    }
+  };
+
+  // 리뷰 생성 처리
+  const handleCreate = async (data: WriteReviewFormValues) => {
     if (!concertId) return;
 
     setIsSubmitting(true);
@@ -103,17 +135,13 @@ export default function WriteReviewForm() {
       if (error) throw error;
 
       toast.success("리뷰가 성공적으로 등록되었습니다");
-
-      // 먼저 생성된 리뷰 페이지로 리다이렉트
       router.push(`/feed/${newReview.id}`);
 
-      // 그 다음 스토어 초기화
       setTimeout(() => {
         useReviewFormStore.getState().reset();
       }, 500);
     } catch (error) {
       console.error("리뷰 등록 실패:", error);
-
       if (error instanceof Error) {
         toast.error(error.message || "리뷰 등록에 실패했습니다");
       } else {
@@ -124,7 +152,46 @@ export default function WriteReviewForm() {
     }
   };
 
-  // 초기화 중이거나 로딩 중일 때 로딩 표시
+  // 리뷰 수정 처리
+  const handleUpdate = async (data: WriteReviewFormValues) => {
+    if (!initialReview?.id) return;
+
+    setIsSubmitting(true);
+    try {
+      // 리뷰 내용 업데이트
+      const { error: updateError } = await supabase
+        .from("reviews")
+        .update({
+          content: data.reviewContent,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", initialReview.id);
+
+      if (updateError) throw updateError;
+
+      // 업데이트된 리뷰 객체 생성 (기존 리뷰 객체에서 내용만 변경)
+      const updatedReview: Review = {
+        ...initialReview,
+        content: data.reviewContent,
+      };
+
+      toast.success("리뷰가 성공적으로 수정되었습니다");
+
+      if (onSuccess) {
+        onSuccess(updatedReview);
+      }
+    } catch (error) {
+      console.error("리뷰 수정 실패:", error);
+      if (error instanceof Error) {
+        toast.error(error.message || "리뷰 수정에 실패했습니다");
+      } else {
+        toast.error("리뷰 수정에 실패했습니다");
+      }
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   if (!isInitialized || isLoading) {
     return <div>콘서트 정보를 불러오는 중...</div>;
   }
@@ -140,7 +207,9 @@ export default function WriteReviewForm() {
       <form id="review-form" onSubmit={handleSubmit(onSubmit)}>
         <div className="space-y-4">
           <div>
-            <h3 className="text-lg font-medium">관람후기</h3>
+            <h3 className="text-lg font-medium">
+              {isEditMode ? "리뷰 수정" : "관람후기"}
+            </h3>
           </div>
 
           <Textarea
@@ -156,6 +225,28 @@ export default function WriteReviewForm() {
               {errors.reviewContent.message}
             </p>
           )}
+
+          <div className="flex justify-end gap-2 pt-4">
+            {isEditMode && onCancel && (
+              <Button
+                type="button"
+                variant="outline"
+                onClick={onCancel}
+                disabled={isSubmitting}
+              >
+                취소
+              </Button>
+            )}
+            <Button type="submit" disabled={isSubmitting}>
+              {isSubmitting
+                ? isEditMode
+                  ? "수정 중..."
+                  : "등록 중..."
+                : isEditMode
+                  ? "수정 완료"
+                  : "등록하기"}
+            </Button>
+          </div>
         </div>
       </form>
     </div>
