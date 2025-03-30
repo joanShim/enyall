@@ -1,4 +1,4 @@
-import { ReviewHeader } from "@/components/layout/ReviewHeader";
+import { CreateReviewHeader } from "@/components/layout/CreateReviewHeader";
 
 export default function ReviewLayout({
   children,
@@ -7,7 +7,7 @@ export default function ReviewLayout({
 }) {
   return (
     <section className="mx-4">
-      <ReviewHeader isSubmitting={false} />
+      <CreateReviewHeader isSubmitting={false} />
       {children}
     </section>
   );

@@ -1,5 +1,7 @@
 import { getReview } from "@/app/actions/getReview";
 import { notFound } from "next/navigation";
+import ReviewDetail from "./ReviewDetail";
+import ReviewHeader from "./ReviewHeader";
 
 interface PageProps {
   params: Promise<{
@@ -17,8 +19,9 @@ export default async function ReviewDetailPage({ params }: PageProps) {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <h1 className="mb-4 text-2xl font-bold">{review.concert?.title}</h1>
-      {/* 나머지 리뷰 상세 내용 렌더링 */}
+      <ReviewHeader name={review.user?.name} />
+      <ReviewDetail review={review} />
+
     </div>
   );
 }

@@ -20,11 +20,19 @@ type Concert = {
   concert_schedules?: Schedule[];
 };
 
+type User = {
+  id: string;
+  name: string;
+  avatar_url: string;
+};
+
 export type Review = {
   id: string;
   content: string;
   rating: number | null;
   created_at: string | null;
+  user_id?: string;
+  user?: User;
   concert: Concert | null;
 };
 
