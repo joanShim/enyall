@@ -168,6 +168,7 @@ export type Database = {
           content: string
           created_at: string | null
           id: string
+          images: Json | null
           rating: number | null
           updated_at: string | null
           user_id: string
@@ -178,6 +179,7 @@ export type Database = {
           content: string
           created_at?: string | null
           id?: string
+          images?: Json | null
           rating?: number | null
           updated_at?: string | null
           user_id: string
@@ -188,6 +190,7 @@ export type Database = {
           content?: string
           created_at?: string | null
           id?: string
+          images?: Json | null
           rating?: number | null
           updated_at?: string | null
           user_id?: string

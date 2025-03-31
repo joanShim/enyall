@@ -1,7 +1,7 @@
-import { getReview } from "@/app/actions/getReview";
+import { getReview } from "@/actions/getReview";
 import { notFound } from "next/navigation";
-import ReviewDetail from "./ReviewDetail";
-import ReviewHeader from "./ReviewHeader";
+import { createServerSupabaseClient } from "@/utils/supabase/server";
+import ReviewEditor from "./ReviewEditor";
 
 interface PageProps {
   params: Promise<{
@@ -12,16 +12,20 @@ interface PageProps {
 export default async function ReviewDetailPage({ params }: PageProps) {
   const { reviewId } = await params;
   const { review, error } = await getReview(reviewId);
+  const supabase = await createServerSupabaseClient();
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
 
   if (error || !review) {
     notFound();
   }
 
-  return (
-    <div className="container mx-auto px-4 py-8">
-      <ReviewHeader name={review.user?.name} />
-      <ReviewDetail review={review} />
+  const isCurrentUserAuthor = session?.user.id === review.user_id;
 
+  return (
+    <div className="container mx-auto px-4">
+      <ReviewEditor review={review} isCurrentUserAuthor={isCurrentUserAuthor} />
     </div>
   );
 }

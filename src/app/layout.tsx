@@ -5,6 +5,7 @@ import QueryProvider from "@/providers/query-provider";
 import { NuqsAdapter } from "nuqs/adapters/next/app";
 import TabBar from "@/components/layout/TabBar";
 import ServiceWorker from "@/components/layout/ServiceWorker";
+import { Toaster } from "sonner";
 
 const pretendard = localFont({
   src: "../fonts/PretendardVariable.woff2",
@@ -35,6 +36,7 @@ export default function RootLayout({
               {children}
             </main>
             <TabBar />
+            <Toaster position="bottom-center" />
           </body>
         </html>
       </NuqsAdapter>

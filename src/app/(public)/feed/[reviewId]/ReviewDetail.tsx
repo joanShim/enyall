@@ -9,6 +9,7 @@ type ArtistJson = {
 };
 
 export default function ReviewDetail({ review }: { review: Review }) {
+  console.log(review);
   const concert = review.concert;
   const artistNames = concert?.artists_json
     ? (concert.artists_json as ArtistJson[])
@@ -55,6 +56,26 @@ export default function ReviewDetail({ review }: { review: Review }) {
         </div>
         {/* {review.rating && <p className="text-sm">평점: {review.rating}/5</p>} */}
       </div>
+
+      {/* 이미지 갤러리 */}
+      {review.images && review.images.length > 0 && (
+        <div className="no-scrollbar mt-4 flex gap-2 overflow-x-auto pb-2">
+          {review.images.map((imageUrl, index) => (
+            <div
+              key={index}
+              className="relative h-40 min-w-[160px] flex-shrink-0 overflow-hidden rounded-md"
+            >
+              <Image
+                src={imageUrl}
+                alt={`리뷰 이미지 ${index + 1}`}
+                fill
+                sizes="(max-width: 640px) 160px, 200px"
+                className="object-cover"
+              />
+            </div>
+          ))}
+        </div>
+      )}
     </section>
   );
 }

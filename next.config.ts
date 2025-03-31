@@ -19,6 +19,14 @@ const nextConfig: NextConfig = {
         protocol: "https",
         hostname: "*.public.blob.vercel-storage.com",
       },
+      {
+        protocol: "https",
+        hostname: "zhkkdahfngkoordcwrud.supabase.co",
+      },
+      {
+        protocol: "https",
+        hostname: "cdnticket.melon.co.kr",
+      },
     ],
   },
   async headers() {

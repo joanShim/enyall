@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useForm, Controller } from "react-hook-form";
+import { useForm, Controller, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
@@ -17,6 +17,7 @@ import { newConcertSchema } from "@/schemas/reviewForm";
 import type { NewConcertFormSchema } from "@/schemas/reviewForm";
 import TimePicker from "../ui/time-picker";
 import DateInput from "../ui/date-input";
+import { Plus, Trash2 } from "lucide-react";
 
 export default function NewConcertForm() {
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -31,13 +32,24 @@ export default function NewConcertForm() {
     handleSubmit,
     formState: { errors },
     setValue,
+    getValues,
   } = useForm<NewConcertFormSchema>({
     resolver: zodResolver(newConcertSchema),
     defaultValues: {
       title: "",
-      concertDate: undefined,
-      startTime: "19:00", // 기본값 설정
+      schedules: [
+        {
+          concertDate: undefined,
+          startTime: "19:00", // 기본값 설정
+        },
+      ],
     },
+  });
+
+  // 일정 필드 배열 관리를 위한 useFieldArray 훅 사용
+  const { fields, append, remove } = useFieldArray({
+    control,
+    name: "schedules",
   });
 
   const createNewArtist = async (name: string): Promise<string | null> => {
@@ -73,26 +85,26 @@ export default function NewConcertForm() {
 
   const createNewVenue = async (name: string): Promise<string | null> => {
     try {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-
-      if (!user) {
-        toast.error("로그인이 필요합니다");
-        return null;
-      }
-
       const { data, error } = await supabase
         .from("venues")
         .insert({
           name,
           address: "", // 빈 주소로 설정
-          created_by: user.id,
         })
         .select("id")
         .single();
 
       if (error) throw error;
+
+      // 새 공연장을 venues 배열에 추가
+      venues.push({
+        id: data.id,
+        name: name,
+        address: "",
+      });
+
+      // 명시적으로 venueId 필드 값 설정
+      setValue("venueId", data.id);
 
       toast.success(`공연장 "${name}"이(가) 추가되었습니다`);
       return data.id;
@@ -121,7 +133,7 @@ export default function NewConcertForm() {
         throw new Error("로그인이 필요합니다");
       }
 
-      // concerts 테이블에 등록 (스키마에 맞게 필드 조정)
+      // concerts 테이블에 등록 (artists_json 필드 제거)
       const { data: newConcert, error: concertError } = await supabase
         .from("concerts")
         .insert({
@@ -133,18 +145,20 @@ export default function NewConcertForm() {
 
       if (concertError) throw concertError;
 
-      // concert_schedules 테이블에 일정 등록
+      // 모든 일정에 대해 concert_schedules 테이블에 등록
+      const scheduleInserts = data.schedules.map((schedule) => ({
+        concert_id: newConcert.id,
+        schedule_date: schedule.concertDate.toISOString().split("T")[0], // YYYY-MM-DD 형식
+        start_time: schedule.startTime,
+      }));
+
       const { error: scheduleError } = await supabase
         .from("concert_schedules")
-        .insert({
-          concert_id: newConcert.id,
-          schedule_date: data.concertDate.toISOString().split("T")[0], // YYYY-MM-DD 형식
-          start_time: data.startTime,
-        });
+        .insert(scheduleInserts);
 
       if (scheduleError) throw scheduleError;
 
-      // concerts_artists 테이블에 연결
+      // concerts_artists 테이블에 연결 (트리거에 의해 artists_json이 자동 업데이트됨)
       const { error: artistError } = await supabase
         .from("concerts_artists")
         .insert({
@@ -180,9 +194,29 @@ export default function NewConcertForm() {
     router.push("/new/select-concert");
   };
 
+  // 새 일정 추가 함수
+  const addSchedule = () => {
+    const schedules = getValues("schedules");
+    let newDate;
+
+    if (schedules?.length > 0 && schedules[schedules.length - 1].concertDate) {
+      // 마지막 일정의 다음 날짜 계산
+      newDate = new Date(schedules[schedules.length - 1].concertDate);
+      newDate.setDate(newDate.getDate() + 1);
+    } else {
+      // 첫 번째 일정이거나 날짜가 없는 경우 현재 날짜 사용
+      newDate = new Date();
+    }
+
+    append({
+      concertDate: newDate,
+      startTime: getDefaultTime(newDate),
+    });
+  };
+
   return (
     <form onSubmit={handleSubmit(onSubmit)}>
-      <div className="space-y-6">
+      <div className="space-y-8">
         <div className="space-y-2">
           <Label htmlFor="title">콘서트 제목</Label>
           <Controller
@@ -201,54 +235,89 @@ export default function NewConcertForm() {
           )}
         </div>
 
-        <div className="space-y-2">
-          <Label>일자</Label>
-          <div className="flex gap-4">
-            <div className="flex-1">
-              <Controller
-                name="concertDate"
-                control={control}
-                render={({ field }) => (
-                  <DateInput
-                    value={field.value}
-                    onChange={(date) => {
-                      field.onChange(date);
-                      if (date) {
-                        // 날짜가 변경되면 기본 시간 설정
-                        const defaultTime = getDefaultTime(date);
-                        setValue("startTime", defaultTime);
-                      }
-                    }}
-                    // disabled={isSubmitting}
-                  />
-                )}
-              />
-              {errors.concertDate && (
-                <p className="text-sm text-red-500">
-                  {errors.concertDate.message}
-                </p>
-              )}
-            </div>
-
-            <div className="flex-1">
-              <Controller
-                name="startTime"
-                control={control}
-                render={({ field }) => (
-                  <TimePicker
-                    value={field.value}
-                    onChange={field.onChange}
-                    disabled={isSubmitting}
-                  />
-                )}
-              />
-              {errors.startTime && (
-                <p className="text-sm text-red-500">
-                  {errors.startTime.message}
-                </p>
-              )}
-            </div>
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <Label>공연 일정</Label>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={addSchedule}
+              disabled={isSubmitting}
+            >
+              <Plus className="mr-2 h-4 w-4" /> 일정 추가
+            </Button>
           </div>
+
+          {fields.map((field, index) => (
+            <div key={field.id} className="">
+              <div className="mb-2 flex items-center justify-between">
+                <h3 className="text-sm font-medium">{index + 1}일차</h3>
+                {fields.length > 1 && (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => remove(index)}
+                    disabled={isSubmitting}
+                  >
+                    <Trash2 className="h-4 w-4 text-destructive" />
+                  </Button>
+                )}
+              </div>
+
+              <div className="flex gap-4">
+                <div className="flex-1">
+                  <Label className="mb-1 block">날짜</Label>
+                  <Controller
+                    name={`schedules.${index}.concertDate`}
+                    control={control}
+                    render={({ field }) => (
+                      <DateInput
+                        value={field.value}
+                        onChange={(date) => {
+                          field.onChange(date);
+                          if (date) {
+                            // 날짜가 변경되면 기본 시간 설정
+                            const defaultTime = getDefaultTime(date);
+                            setValue(
+                              `schedules.${index}.startTime`,
+                              defaultTime,
+                            );
+                          }
+                        }}
+                      />
+                    )}
+                  />
+                  {errors.schedules?.[index]?.concertDate && (
+                    <p className="text-sm text-red-500">
+                      {errors.schedules[index]?.concertDate?.message}
+                    </p>
+                  )}
+                </div>
+
+                <div className="flex-1">
+                  <Label className="mb-1 block">시작 시간</Label>
+                  <Controller
+                    name={`schedules.${index}.startTime`}
+                    control={control}
+                    render={({ field }) => (
+                      <TimePicker
+                        value={field.value}
+                        onChange={field.onChange}
+                        disabled={isSubmitting}
+                      />
+                    )}
+                  />
+                  {errors.schedules?.[index]?.startTime && (
+                    <p className="text-sm text-red-500">
+                      {errors.schedules[index]?.startTime?.message}
+                    </p>
+                  )}
+                </div>
+              </div>
+            </div>
+          ))}
         </div>
 
         <EntitySelector

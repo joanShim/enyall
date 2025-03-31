@@ -104,7 +104,7 @@ export default function DateInput({
             <Button
               variant="outline"
               size="icon"
-              className="-ml-1 shrink-0"
+              className="ml-1 shrink-0"
               aria-label="캘린더에서 날짜 선택"
             >
               <CalendarIcon className="h-4 w-4" />
