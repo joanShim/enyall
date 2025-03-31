@@ -15,6 +15,7 @@ export async function getReview(reviewId: string) {
         id,
         content,
         rating,
+        images,
         created_at,
         user_id,
         concert:concert_id (
@@ -43,12 +44,23 @@ export async function getReview(reviewId: string) {
       throw new Error("리뷰를 찾을 수 없습니다");
     }
 
+    // images 필드가 JSON 문자열로 저장되어 있을 경우를 대비한 처리
+    let images = [];
+    if (reviewData.images) {
+      // 이미 배열이면 그대로 사용, 문자열이면 파싱
+      images = Array.isArray(reviewData.images)
+        ? reviewData.images
+        : typeof reviewData.images === "string"
+          ? JSON.parse(reviewData.images)
+          : [];
+    }
+
     // Review 타입으로 변환
     const review: Review = {
       id: reviewData.id,
       content: reviewData.content,
       rating: reviewData.rating,
-      images: [], // 데이터베이스에 컬럼 추가 전까지는 빈 배열 사용
+      images: images,
       created_at: reviewData.created_at,
       user_id: reviewData.user_id,
       concert: reviewData.concert,
