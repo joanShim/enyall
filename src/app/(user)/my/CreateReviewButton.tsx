@@ -3,7 +3,7 @@ import Link from "next/link";
 
 export default function CreateReviewButton() {
   return (
-    <div className="fixed bottom-20 left-0 right-0 z-50 mx-auto max-w-md">
+    <div className="fixed bottom-[6rem] left-0 right-0 z-50 mx-auto max-w-md">
       <Link
         href="/new"
         aria-label="새 리뷰 작성"
