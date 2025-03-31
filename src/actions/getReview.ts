@@ -7,7 +7,7 @@ export async function getReview(reviewId: string) {
   try {
     const supabase = await createServerSupabaseClient();
 
-    // 먼저 리뷰 정보만 가져옵니다
+    // 리뷰 정보 가져오기 (images 필드 추가)
     const { data: reviewData, error } = await supabase
       .from("reviews")
       .select(
@@ -48,6 +48,7 @@ export async function getReview(reviewId: string) {
       id: reviewData.id,
       content: reviewData.content,
       rating: reviewData.rating,
+      images: [], // 데이터베이스에 컬럼 추가 전까지는 빈 배열 사용
       created_at: reviewData.created_at,
       user_id: reviewData.user_id,
       concert: reviewData.concert,

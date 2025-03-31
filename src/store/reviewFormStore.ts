@@ -9,12 +9,14 @@ type ReviewFormState = Partial<ReviewFormSchema> & {
   reset: () => void;
   currentStep: number;
   setStep: (step: number) => void;
+  reviewImages: string[];
 };
 
 export const useReviewFormStore = create<ReviewFormState>()(
   persist(
     (set) => ({
       currentStep: 1,
+      reviewImages: [],
       setStep: (step) => set({ currentStep: step }),
       setData: (data) => set((state) => ({ ...state, ...data })),
       reset: () =>
@@ -22,6 +24,7 @@ export const useReviewFormStore = create<ReviewFormState>()(
           currentStep: 1,
           concertId: undefined,
           reviewContent: undefined,
+          reviewImages: [],
         }),
     }),
     {

@@ -209,7 +209,7 @@ export function EntitySelector<T extends Record<string, unknown>>({
                   <div className="space-y-2 py-2 text-center">
                     <p className="text-sm text-gray-500">
                       {searchTerm
-                        ? `찾으시는 ${label}가 없나요?`
+                        ? `찾으시는 ${label} 없나요?`
                         : `${label}를 검색해주세요`}
                     </p>
                     {searchTerm && onCreateNew && (

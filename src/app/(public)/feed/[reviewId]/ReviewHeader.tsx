@@ -4,7 +4,14 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { ChevronLeft, EllipsisVertical, Edit, Trash } from "lucide-react";
+import {
+  ChevronLeft,
+  EllipsisVertical,
+  Edit,
+  Trash,
+  Check,
+  X,
+} from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Review } from "@/types/review";
@@ -16,14 +23,18 @@ interface ReviewHeaderProps {
   name: string | undefined;
   review: Review;
   isCurrentUserAuthor: boolean;
+  isEditing: boolean;
   setIsEditing: (isEditing: boolean) => void;
+  onSubmit?: () => void;
 }
 
 export default function ReviewHeader({
   name,
   review,
   isCurrentUserAuthor,
+  isEditing,
   setIsEditing,
+  onSubmit,
 }: ReviewHeaderProps) {
   const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
@@ -33,6 +44,10 @@ export default function ReviewHeader({
   const handleEdit = () => {
     setIsEditing(true);
     setIsOpen(false);
+  };
+
+  const handleCancelEdit = () => {
+    setIsEditing(false);
   };
 
   const handleDeleteClick = () => {
@@ -68,13 +83,31 @@ export default function ReviewHeader({
       />
 
       <header className="mb-4 flex items-center justify-between">
-        <Button variant="ghost" size="icon" onClick={() => router.back()}>
-          <ChevronLeft className="h-5 w-5" />
-        </Button>
+        {isEditing ? (
+          <Button variant="ghost" size="icon" onClick={handleCancelEdit}>
+            <X className="h-5 w-5" />
+          </Button>
+        ) : (
+          <Button variant="ghost" size="icon" onClick={() => router.back()}>
+            <ChevronLeft className="h-5 w-5" />
+          </Button>
+        )}
+
         <h1 className="w-full text-center text-sm font-bold">
-          {name}님의 리뷰
+          {isEditing ? "리뷰 수정" : `${name}님의 리뷰`}
         </h1>
-        {isCurrentUserAuthor ? (
+
+        {isEditing ? (
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={onSubmit}
+            type="submit"
+            form="review-form"
+          >
+            <Check className="h-5 w-5" />
+          </Button>
+        ) : isCurrentUserAuthor ? (
           <Popover open={isOpen} onOpenChange={setIsOpen}>
             <PopoverTrigger asChild>
               <Button variant="ghost" size="icon">

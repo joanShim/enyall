@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Review } from "@/types/review";
 import ReviewDetail from "./ReviewDetail";
 import ReviewHeader from "./ReviewHeader";
@@ -19,6 +19,16 @@ export default function ReviewEditor({
   const [isEditing, setIsEditing] = useState(false);
   const [currentReview, setCurrentReview] = useState<Review>(review);
   const router = useRouter();
+  const formRef = useRef<HTMLFormElement>(null);
+
+  // 폼 제출 핸들러
+  const handleSubmitForm = () => {
+    if (formRef.current) {
+      formRef.current.dispatchEvent(
+        new Event("submit", { cancelable: true, bubbles: true }),
+      );
+    }
+  };
 
   // 리뷰 업데이트 성공 핸들러
   const handleUpdateSuccess = (updatedReview: Review) => {
@@ -28,14 +38,15 @@ export default function ReviewEditor({
     router.refresh();
   };
 
-
   return (
     <>
       <ReviewHeader
         name={currentReview.user?.name}
         review={currentReview}
         isCurrentUserAuthor={isCurrentUserAuthor}
+        isEditing={isEditing}
         setIsEditing={setIsEditing}
+        onSubmit={handleSubmitForm}
       />
 
       {isEditing ? (
@@ -44,6 +55,7 @@ export default function ReviewEditor({
           initialReview={currentReview}
           onCancel={() => setIsEditing(false)}
           onSuccess={handleUpdateSuccess}
+          ref={formRef}
         />
       ) : (
         <ReviewDetail review={currentReview} />

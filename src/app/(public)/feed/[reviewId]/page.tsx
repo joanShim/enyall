@@ -1,4 +1,4 @@
-import { getReview } from "@/app/actions/getReview";
+import { getReview } from "@/actions/getReview";
 import { notFound } from "next/navigation";
 import { createServerSupabaseClient } from "@/utils/supabase/server";
 import ReviewEditor from "./ReviewEditor";

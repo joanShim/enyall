@@ -29,6 +29,7 @@ type User = {
 export type Review = {
   id: string;
   content: string;
+  images?: string[];
   rating: number | null;
   created_at: string | null;
   user_id?: string;
