@@ -24,7 +24,7 @@ export default function SignInWithGoogle() {
   return (
     <Button
       variant="outline"
-      className="bg-white text-gray-900"
+      className="w-full bg-white text-gray-900"
       onClick={handleSignIn}
     >
       구글로 로그인

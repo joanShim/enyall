@@ -80,7 +80,9 @@ export function ProfileAvatar({ avatarUrl }: ProfileAvatarProps) {
           src={currentAvatarUrl}
           alt="프로필 이미지"
           fill
+          sizes="128px"
           className="rounded-full border object-cover"
+          priority
         />
         <Input
           ref={fileInputRef}
