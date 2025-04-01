@@ -15,6 +15,7 @@ export default function RandomEyeLoader({
 }: RandomEyeLoaderProps) {
   // 하나의 공통 위치를 사용하여 두 눈동자를 연동
   const [pupilPosition, setPupilPosition] = useState({ x: 0, y: 0 });
+  const [, setPositionIndex] = useState(0);
 
   // Eye properties
   const eyeSize = size;
@@ -22,34 +23,36 @@ export default function RandomEyeLoader({
   const eyeSpacing = -size * 0.25; // Negative value for overlap
   const maxPupilMovement = size * 0.15;
 
+  // 미리 정의된 눈동자 이동 경로
+  const positions = [
+    { x: 0, y: 0 }, // 중앙
+    { x: -maxPupilMovement, y: 0 }, // 왼쪽
+    { x: 0, y: 0 }, // 중앙
+    { x: maxPupilMovement, y: 0 }, // 오른쪽
+    { x: 0, y: 0 }, // 중앙
+    { x: 0, y: -maxPupilMovement * 0.7 }, // 위
+    { x: 0, y: 0 }, // 중앙
+    { x: 0, y: maxPupilMovement * 0.7 }, // 아래
+    { x: 0, y: 0 }, // 중앙
+  ];
+
   useEffect(() => {
     if (!loading) return;
 
-    // Function to generate random pupil positions
-    const generateRandomPosition = () => {
-      // Random angle between 0 and 2π
-      const angle = Math.random() * Math.PI * 2;
+    // 초기 위치 설정
+    setPupilPosition(positions[0]);
 
-      // Random distance from center (up to maxPupilMovement)
-      const distance = Math.random() * maxPupilMovement;
-
-      // Calculate new position - both eyes will use this same position
-      setPupilPosition({
-        x: Math.cos(angle) * distance,
-        y: Math.sin(angle) * distance,
-      });
-    };
-
-    // Initial position
-    generateRandomPosition();
-
-    // Set interval to update positions every 2 seconds
+    // 2초마다 다음 위치로 이동
     const intervalId = setInterval(() => {
-      generateRandomPosition();
+      setPositionIndex((prevIndex) => {
+        const nextIndex = (prevIndex + 1) % positions.length;
+        setPupilPosition(positions[nextIndex]);
+        return nextIndex;
+      });
     }, 2000);
 
     return () => clearInterval(intervalId);
-  }, [loading, maxPupilMovement]);
+  }, [loading]);
 
   if (!loading) return null;
 
