@@ -4,6 +4,7 @@ import "./globals.css";
 import QueryProvider from "@/providers/query-provider";
 import { NuqsAdapter } from "nuqs/adapters/next/app";
 import TabBar from "@/components/layout/TabBar";
+import { GoogleAnalytics } from "@next/third-parties/google";
 import ServiceWorker from "@/components/layout/ServiceWorker";
 import { Toaster } from "sonner";
 
@@ -25,6 +26,7 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const gaId = process.env.NEXT_PUBLIC_GA_ID;
   return (
     <QueryProvider>
       <NuqsAdapter>
@@ -37,6 +39,7 @@ export default function RootLayout({
             </main>
             <TabBar />
             <Toaster position="bottom-center" />
+            {gaId && <GoogleAnalytics gaId={gaId} />}
           </body>
         </html>
       </NuqsAdapter>
