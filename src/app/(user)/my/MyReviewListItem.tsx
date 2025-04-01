@@ -1,12 +1,8 @@
 import { MyReviewListItemProps } from "@/types/review";
+import { ArtistJson } from "@/types/concert";
 import { formatDate } from "@/utils/dateFormat";
 import Image from "next/image";
 import Link from "next/link";
-
-interface Artist {
-  name_ko?: string;
-  name_official: string;
-}
 
 interface Schedule {
   schedule_date: string;
@@ -19,7 +15,7 @@ export default function MyReviewListItem({ review }: MyReviewListItemProps) {
 
   // 아티스트 이름 표시 형식 개선
   const artistNames = concert.artists_json
-    ? (concert.artists_json as unknown as Artist[])
+    ? (concert.artists_json as ArtistJson[])
         .map((artist) => artist.name_ko || artist.name_official)
         .join(", ")
     : "-";

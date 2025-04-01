@@ -4,8 +4,8 @@ import { useState, useRef } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
-import { updateProfileImage } from "@/actions/update-profile-actions";
 import { toast } from "sonner";
+import { useUserProfile } from "@/hooks/useUserProfile";
 
 interface ProfileAvatarProps {
   avatarUrl: string;
@@ -15,6 +15,7 @@ export function ProfileAvatar({ avatarUrl }: ProfileAvatarProps) {
   const [isUploading, setIsUploading] = useState(false);
   const [currentAvatarUrl, setCurrentAvatarUrl] = useState(avatarUrl);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const { updateProfile } = useUserProfile();
 
   const handleButtonClick = () => {
     fileInputRef.current?.click();
@@ -55,11 +56,8 @@ export function ProfileAvatar({ avatarUrl }: ProfileAvatarProps) {
       // 이미지 URL을 상태로 업데이트
       setCurrentAvatarUrl(data.url);
 
-      // users 테이블의 avatar_url 업데이트
-      const result = await updateProfileImage(data.url);
-      if (result.error) {
-        throw new Error(result.error);
-      }
+      // TanStack Query를 통해 업데이트
+      updateProfile({ avatar_url: data.url });
 
       toast.success("프로필 이미지가 업데이트되었습니다.");
     } catch (err) {
