@@ -5,7 +5,13 @@
 import * as Sentry from "@sentry/nextjs";
 
 Sentry.init({
-  dsn: "https://3c73fe6db451a41c76b4bfd8942f13fe@o4508755487293440.ingest.us.sentry.io/4509076630208512",
+  dsn:
+    process.env.NODE_ENV === "production"
+      ? "https://3c73fe6db451a41c76b4bfd8942f13fe@o4508755487293440.ingest.us.sentry.io/4509076630208512"
+      : "",
+
+  // Disable Sentry in development
+  enabled: process.env.NODE_ENV === "production",
 
   // Add optional integrations for additional features
   integrations: [Sentry.replayIntegration()],
