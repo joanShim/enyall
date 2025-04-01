@@ -1,5 +1,7 @@
-import { redirect } from "next/navigation";
+"use client";
+
+import SelectConcertForm from "@/components/review/SelectConcertForm";
 
 export default function ReviewPage() {
-  redirect("/new/select-concert");
+  return <SelectConcertForm />;
 }

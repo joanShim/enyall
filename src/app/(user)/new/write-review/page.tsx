@@ -1,3 +1,5 @@
+"use client";
+
 import WriteReviewForm from "@/components/review/WriteReviewForm";
 
 export default function WriteReviewPage() {
