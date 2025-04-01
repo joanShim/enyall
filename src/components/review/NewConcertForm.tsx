@@ -67,7 +67,6 @@ export default function NewConcertForm() {
         .from("artists")
         .insert({
           name_official: name,
-          created_by: user.id,
         })
         .select("id")
         .single();

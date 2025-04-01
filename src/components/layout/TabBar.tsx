@@ -4,9 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { Globe, Search, User } from "lucide-react";
-import { useEffect, useState } from "react";
-import { createBrowserSupabaseClient } from "@/utils/supabase/client";
-import { Tables } from "@/types/db";
+import { useUserStore } from "@/store/userStore";
 
 const navItems = [
   {
@@ -23,33 +21,7 @@ const navItems = [
 
 export default function TabBar() {
   const pathname = usePathname();
-  const [userProfile, setUserProfile] = useState<Tables<"users"> | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const supabase = createBrowserSupabaseClient();
-
-  const getUserData = async () => {
-    setIsLoading(true);
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    if (user) {
-      // DB에서 사용자 프로필 정보 가져오기
-      const { data: profile } = await supabase
-        .from("users")
-        .select("*")
-        .eq("id", user.id)
-        .single();
-
-      setUserProfile(profile);
-    }
-    setIsLoading(false);
-  };
-
-  useEffect(() => {
-    getUserData();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  const { userProfile, isLoading } = useUserStore();
 
   return (
     <nav className="bottom-tabs-padding fixed bottom-0 left-0 right-0 z-50 mx-auto flex max-w-md items-center justify-around border-t bg-white px-2 py-4">

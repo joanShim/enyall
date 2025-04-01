@@ -1,3 +1,5 @@
+"use client";
+
 import NewConcertForm from "@/components/review/NewConcertForm";
 
 export default function NewConcertPage() {

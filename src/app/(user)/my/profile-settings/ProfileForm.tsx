@@ -1,17 +1,16 @@
 "use client";
 
 import { useState, useRef } from "react";
-import { updateUserProfile } from "@/actions/update-profile-actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useFormStatus } from "react-dom";
 import { useRouter } from "next/navigation";
 import { ArtistSelector } from "./ArtistSelector";
 import { Artist } from "@/types/artist";
 import { Badge } from "@/components/ui/badge";
 import { Database } from "@/types/db";
 import { toast } from "sonner";
+import { useUserProfile } from "@/hooks/useUserProfile";
 
 interface ProfileFormProps {
   user: Database["public"]["Tables"]["users"]["Row"];
@@ -19,11 +18,10 @@ interface ProfileFormProps {
   userFavorites: string[];
 }
 
-function SubmitButton() {
-  const { pending } = useFormStatus();
+function SubmitButton({ isPending }: { isPending: boolean }) {
   return (
-    <Button type="submit" className="w-full" disabled={pending}>
-      {pending ? "저장 중..." : "프로필 저장"}
+    <Button type="submit" className="w-full" disabled={isPending}>
+      {isPending ? "저장 중..." : "프로필 저장"}
     </Button>
   );
 }
@@ -37,6 +35,7 @@ export function ProfileForm({
   const formRef = useRef<HTMLFormElement>(null);
   const router = useRouter();
   const email = user.email;
+  const { updateProfile, isPending } = useUserProfile();
 
   // 사용자의 즐겨찾기 아티스트 ID를 기반으로 초기 선택된 아티스트 설정
   const initialSelectedArtists = artists.filter((artist) =>
@@ -52,25 +51,31 @@ export function ProfileForm({
     );
   };
 
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+
+    try {
+      const profileData = {
+        name: nickname,
+        favorites: selectedArtists.map((artist) => artist.id),
+      };
+
+      updateProfile(profileData);
+
+      toast.success("프로필이 성공적으로 업데이트되었습니다.");
+      router.push("/my");
+    } catch (error) {
+      console.error("프로필 업데이트 실패:", error);
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : "프로필 업데이트에 실패했습니다.",
+      );
+    }
+  };
+
   return (
-    <form
-      ref={formRef}
-      action={async (formData) => {
-        selectedArtists.forEach((artist) => {
-          formData.append("selectedArtists", artist.id);
-        });
-
-        const result = await updateUserProfile(formData);
-
-        if (result?.error) {
-          toast.error(result.error);
-        } else if (result?.success) {
-          toast.success("프로필이 성공적으로 업데이트되었습니다.");
-          router.push("/my");
-        }
-      }}
-      className="w-full space-y-6"
-    >
+    <form ref={formRef} onSubmit={handleSubmit} className="w-full space-y-6">
       {email && (
         <div className="text-center text-sm text-gray-500">{email}</div>
       )}
@@ -110,7 +115,7 @@ export function ProfileForm({
         </div>
       )}
 
-      <SubmitButton />
+      <SubmitButton isPending={isPending} />
     </form>
   );
 }

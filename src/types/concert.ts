@@ -13,3 +13,9 @@ export type Concert = Tables<"concerts"> & {
   poster_url?: string;
   title: string;
 };
+
+export type ArtistJson = {
+  id: string;
+  name_official: string;
+  name_ko?: string;
+};

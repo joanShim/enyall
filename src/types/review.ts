@@ -1,29 +1,24 @@
 import { Json } from "./db";
 
-type Venue = {
+export type Venue = {
   id: string;
   name: string;
   address: string | null;
 };
 
-type Schedule = {
+export type Schedule = {
   schedule_date: string;
   start_time: string;
 };
 
-type Concert = {
+// Supabase에서 실제로 반환되는 콘서트 구조
+export type ReviewConcert = {
   id: string;
   title: string;
   poster_url: string | null;
-  artists_json: Json | null;
-  venue: Venue | null;
-  concert_schedules?: Schedule[];
-};
-
-type User = {
-  id: string;
-  name: string;
-  avatar_url: string;
+  artists_json: Json; // Json 타입 허용
+  venue: Venue;
+  concert_schedules: Schedule[];
 };
 
 export type Review = {
@@ -33,8 +28,13 @@ export type Review = {
   rating: number | null;
   created_at: string | null;
   user_id?: string;
-  user?: User;
-  concert: Concert | null;
+  user?: {
+    id: string;
+    name: string;
+    avatar_url: string;
+  };
+  concert: ReviewConcert | null; // 수정된 타입 사용
+  concert_id?: string;
 };
 
 export interface MyReviewListItemProps {

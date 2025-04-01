@@ -16,9 +16,10 @@ body {
 } */
 
 @layer utilities {
-  /* 모바일 환경에서만 적용 */
-  @media (max-width: 768px) {
+  /* PWA 환경에서만 적용 */
+  @media (display-mode: standalone) {
     .bottom-tabs-padding {
+      padding-bottom: calc(constant(safe-area-inset-bottom) + 2rem);
       padding-bottom: calc(env(safe-area-inset-bottom) + 2rem);
     }
   }
