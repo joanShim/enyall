@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -36,6 +36,14 @@ export function ProfileForm({
   const router = useRouter();
   const email = user.email;
   const { updateProfile, isPending } = useUserProfile();
+
+  useEffect(() => {
+    if (!user.is_onboarding_completed) {
+      updateProfile({
+        is_onboarding_completed: true,
+      });
+    }
+  }, [user, updateProfile]);
 
   // 사용자의 즐겨찾기 아티스트 ID를 기반으로 초기 선택된 아티스트 설정
   const initialSelectedArtists = artists.filter((artist) =>

@@ -27,6 +27,11 @@ export function useFeed() {
         images,
         created_at,
         user_id,
+        user:user_id (
+          id,
+          name,
+          avatar_url
+        ),
         concert:concert_id (
           id,
           title,
