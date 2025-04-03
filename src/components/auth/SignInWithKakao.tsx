@@ -9,20 +9,17 @@ export default function SignInWithKakao() {
     
     try {
       const supabase = createBrowserSupabaseClient();
-      
-      // 리다이렉트 URL 설정
-      const redirectUrl = process.env.NEXT_PUBLIC_VERCEL_URL
-        ? `https://${process.env.NEXT_PUBLIC_VERCEL_URL}/auth/callback`
-        : "http://localhost:3000/auth/callback";
-      
-      console.log("[AUTH] 카카오 OAuth 리다이렉트 URL:", redirectUrl);
+     
+    // 현재 URL의 origin을 가져와서 리다이렉트 URL 생성
+    const origin = window.location.origin;
+    const redirectTo = `${origin}/auth/callback`;
 
-      const { data, error } = await supabase.auth.signInWithOAuth({
-        provider: "kakao",
-        options: {
-          redirectTo: redirectUrl,
-        },
-      });
+    const { data, error } = await supabase.auth.signInWithOAuth({
+      provider: "kakao",
+      options: {
+        redirectTo,
+      },
+    });
 
       if (error) {
         console.error("[AUTH] 카카오 로그인 오류:", error);
