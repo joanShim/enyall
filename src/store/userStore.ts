@@ -37,7 +37,9 @@ export const useUserStore = create<UserState>((set) => ({
         .eq("id", user.id)
         .single();
 
-      if (error) throw error;
+      if (error) {
+        throw error;
+      }
 
       set({ userProfile: profile, isLoading: false });
     } catch (error) {
