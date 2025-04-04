@@ -7,11 +7,6 @@ import { Tables } from "@/types/db";
 import { Artist } from "@/types/artist";
 import { useUser, userKeys } from "./useUser";
 
-// 로깅 함수
-const logProfileHook = (message: string, data?: unknown) => {
-  console.log(`[AUTH-PROFILE-HOOK] ${message}`, data ? data : "");
-};
-
 export function useUserProfile() {
   const { userProfile } = useUserStore();
   const supabase = createBrowserSupabaseClient();
@@ -22,8 +17,6 @@ export function useUserProfile() {
   const profileQuery = useQuery({
     queryKey: userKeys.profile(),
     queryFn: async () => {
-      logProfileHook("프로필 조회 시작");
-
       // 스토어에 이미 프로필이 있으면 사용
       if (userProfile) {
         return userProfile;
@@ -51,7 +44,6 @@ export function useUserProfile() {
     },
     enabled: !isUserLoading && !!user,
     retry: 1,
-    retry: 1,
   });
 
   // 관심 아티스트 목록 조회 쿼리
@@ -68,11 +60,6 @@ export function useUserProfile() {
 
       if (favorites.length === 0) return [];
 
-      try {
-        const { data, error } = await supabase
-          .from("artists")
-          .select("*")
-          .in("id", favorites);
       try {
         const { data, error } = await supabase
           .from("artists")
@@ -109,12 +96,6 @@ export function useUserProfile() {
           .eq("id", user.id)
           .select("*")
           .single();
-        const { data, error } = await supabase
-          .from("users")
-          .update(profileData)
-          .eq("id", user.id)
-          .select("*")
-          .single();
 
         if (error) {
           throw new Error("프로필 업데이트에 실패했습니다");
@@ -131,7 +112,6 @@ export function useUserProfile() {
 
       // 사용자 스토어 업데이트
       useUserStore.getState().fetchUserProfile();
-      logProfileHook("프로필 업데이트 후 스토어 갱신");
     },
   });
 
