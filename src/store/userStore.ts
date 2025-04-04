@@ -47,15 +47,9 @@ export const useUserStore = create<UserState>((set) => ({
         .single();
 
       if (error) {
-        logStore('프로필 정보 로드 오류', {
-          message: error.message,
-          code: error.code,
-          details: error.details
-        });
         throw error;
       }
 
-      logStore('프로필 정보 로드 성공', { hasProfile: !!profile });
       set({ userProfile: profile, isLoading: false });
     } catch (error) {
       console.error("사용자 프로필 정보를 불러오는데 실패했습니다:", error);

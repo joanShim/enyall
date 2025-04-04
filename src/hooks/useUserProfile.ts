@@ -26,16 +26,12 @@ export function useUserProfile() {
 
       // 스토어에 이미 프로필이 있으면 사용
       if (userProfile) {
-        logProfileHook("스토어에서 프로필 발견", { userId: userProfile.id });
         return userProfile;
       }
 
       if (!user) {
-        logProfileHook("사용자 인증 정보 없음");
         throw new Error("인증된 사용자가 필요합니다");
       }
-
-      logProfileHook("DB에서 프로필 조회 시도", { userId: user.id });
 
       try {
         const { data, error } = await supabase
@@ -45,26 +41,16 @@ export function useUserProfile() {
           .single();
 
         if (error) {
-          logProfileHook("프로필 조회 오류", {
-            message: error.message,
-            code: error.code,
-            details: error.details,
-          });
           throw new Error("프로필 로딩에 실패했습니다");
         }
 
-        logProfileHook("프로필 조회 성공", {
-          userId: data.id,
-          hasProfile: !!data,
-        });
-
         return data;
       } catch (err) {
-        logProfileHook("프로필 조회 예외 발생", err);
         throw err;
       }
     },
     enabled: !isUserLoading && !!user,
+    retry: 1,
     retry: 1,
   });
 
@@ -73,15 +59,12 @@ export function useUserProfile() {
     queryKey: userKeys.favoriteArtists(),
     queryFn: async () => {
       const userId = profileQuery.data?.id;
-      logProfileHook("관심 아티스트 조회 시작", { userId });
 
       if (!userId) {
-        logProfileHook("사용자 ID 없음");
         throw new Error("사용자 ID를 찾을 수 없습니다");
       }
 
       const favorites = profileQuery.data?.favorites || [];
-      logProfileHook("관심 아티스트 ID 목록", { count: favorites.length });
 
       if (favorites.length === 0) return [];
 
@@ -90,19 +73,18 @@ export function useUserProfile() {
           .from("artists")
           .select("*")
           .in("id", favorites);
+      try {
+        const { data, error } = await supabase
+          .from("artists")
+          .select("*")
+          .in("id", favorites);
 
         if (error) {
-          logProfileHook("아티스트 조회 오류", {
-            message: error.message,
-            code: error.code,
-          });
           throw new Error("아티스트 정보 로딩에 실패했습니다");
         }
 
-        logProfileHook("아티스트 조회 성공", { count: data.length });
         return data as Artist[];
       } catch (err) {
-        logProfileHook("아티스트 조회 예외 발생", err);
         throw err;
       }
     },
@@ -112,15 +94,12 @@ export function useUserProfile() {
   // 프로필 업데이트 뮤테이션
   const updateProfileMutation = useMutation({
     mutationFn: async (profileData: Partial<Tables<"users">>) => {
-      logProfileHook("프로필 업데이트 시작", profileData);
-
       try {
         const {
           data: { user },
         } = await supabase.auth.getUser();
 
         if (!user) {
-          logProfileHook("프로필 업데이트 실패 - 사용자 없음");
           throw new Error("인증된 사용자를 찾을 수 없습니다");
         }
 
@@ -130,19 +109,19 @@ export function useUserProfile() {
           .eq("id", user.id)
           .select("*")
           .single();
+        const { data, error } = await supabase
+          .from("users")
+          .update(profileData)
+          .eq("id", user.id)
+          .select("*")
+          .single();
 
         if (error) {
-          logProfileHook("프로필 업데이트 오류", {
-            message: error.message,
-            code: error.code,
-          });
           throw new Error("프로필 업데이트에 실패했습니다");
         }
 
-        logProfileHook("프로필 업데이트 성공", { userId: data.id });
         return data;
       } catch (err) {
-        logProfileHook("프로필 업데이트 예외 발생", err);
         throw err;
       }
     },

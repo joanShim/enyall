@@ -26,6 +26,7 @@ export default function FeedItem({ review }: FeedItemProps) {
                 src={review.user.avatar_url}
                 alt="프로필"
                 fill
+                sizes="40px"
                 className="object-cover"
               />
             ) : (
@@ -53,15 +54,17 @@ export default function FeedItem({ review }: FeedItemProps) {
           {review.images && review.images.length > 0 && (
             <div className="no-scrollbar mt-3 flex gap-2 overflow-x-auto pb-2">
               {review.images.map((imageUrl, index) => (
-                <div 
-                  key={index} 
+                <div
+                  key={index}
                   className="relative h-40 min-w-[160px] flex-shrink-0 overflow-hidden rounded-md"
                 >
                   <Image
                     src={imageUrl}
                     alt={`리뷰 이미지 ${index + 1}`}
                     fill
+                    sizes="(max-width: 768px) 160px, 200px"
                     className="object-cover"
+                    priority
                   />
                 </div>
               ))}
