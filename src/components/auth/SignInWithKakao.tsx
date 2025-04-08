@@ -2,6 +2,7 @@
 
 import { Button } from "../ui/button";
 import { createBrowserSupabaseClient } from "@/utils/supabase/client";
+import { toast } from "sonner";
 
 export default function SignInWithKakao() {
   const handleSignIn = async () => {
@@ -13,8 +14,7 @@ export default function SignInWithKakao() {
         ? `https://${process.env.NEXT_PUBLIC_VERCEL_URL}/auth/callback`
         : "http://localhost:3000/auth/callback";
 
-
-      const { data, error } = await supabase.auth.signInWithOAuth({
+      const { error } = await supabase.auth.signInWithOAuth({
         provider: "kakao",
         options: {
           redirectTo: redirectUrl,
@@ -22,17 +22,13 @@ export default function SignInWithKakao() {
       });
 
       if (error) {
-        console.error("[AUTH] 카카오 로그인 오류:", error);
-        console.error("[AUTH] 오류 세부 정보:", {
-          code: error.code,
-          message: error.message,
-          status: error.status,
-        });
-      } else {
-        console.log("[AUTH] 카카오 OAuth 초기화 성공:", data);
+        toast.error("카카오 로그인에 실패했습니다");
+        throw error;
       }
-    } catch (e) {
-      console.error("[AUTH] 카카오 로그인 예외 발생:", e);
+    } catch (error) {
+      if (error instanceof Error) {
+        toast.error(error.message);
+      }
     }
   };
 
