@@ -7,7 +7,6 @@ import TabBar from "@/components/layout/TabBar";
 import { GoogleAnalytics } from "@next/third-parties/google";
 import ServiceWorker from "@/components/layout/ServiceWorker";
 import { Toaster } from "sonner";
-import AuthChangeListener from "@/components/auth/AuthChangeListener";
 
 const pretendard = localFont({
   src: "../fonts/PretendardVariable.woff2",
@@ -40,7 +39,6 @@ export default function RootLayout({
             </main>
             <TabBar />
             <Toaster position="bottom-center" />
-            <AuthChangeListener />
             {gaId && <GoogleAnalytics gaId={gaId} />}
           </body>
         </html>

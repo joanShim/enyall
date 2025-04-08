@@ -4,7 +4,8 @@ import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { Globe, Search, User } from "lucide-react";
-import { useUserStore } from "@/store/userStore";
+import { useUserProfile } from "@/hooks/useUserProfile";
+import { useUser } from "@/hooks/useUser";
 
 const navItems = [
   {
@@ -21,7 +22,11 @@ const navItems = [
 
 export default function TabBar() {
   const pathname = usePathname();
-  const { userProfile, isLoading } = useUserStore();
+  const { isLoading: isUserLoading } = useUser();
+  const { profile: userProfile, isLoading: isProfileLoading } =
+    useUserProfile();
+
+  const isLoading = isUserLoading || isProfileLoading;
 
   return (
     <nav className="bottom-tabs-padding fixed bottom-0 left-0 right-0 z-50 mx-auto flex max-w-md items-center justify-around border-t bg-white px-2 py-4">
