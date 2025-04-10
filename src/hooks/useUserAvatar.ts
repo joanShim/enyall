@@ -35,7 +35,8 @@ export function useUserAvatar() {
       } = await supabase.auth.getUser();
 
       if (!user) {
-        throw new Error("인증된 사용자를 찾을 수 없습니다");
+        setAvatarUrl(null);
+        return null;
       }
 
       // 사용자의 avatar_url만 조회
@@ -54,9 +55,11 @@ export function useUserAvatar() {
         return data.avatar_url;
       }
 
+      setAvatarUrl(null);
       return null;
     } catch (error) {
       console.error("Error fetching avatar:", error);
+      setAvatarUrl(null);
       return null;
     }
   };
