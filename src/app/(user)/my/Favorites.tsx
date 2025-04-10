@@ -27,7 +27,7 @@ export default function Favorites({ artists }: { artists: Artist[] }) {
       <div className="flex flex-wrap justify-center gap-2">
         {artists.map((artist) => (
           <Badge key={artist.id} variant="outline">
-            {artist.name_ko}
+            {artist.name_ko || artist.name_official || artist.name_en}
           </Badge>
         ))}
       </div>
