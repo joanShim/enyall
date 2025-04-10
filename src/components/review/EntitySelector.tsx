@@ -44,7 +44,6 @@ export function EntitySelector<T extends Record<string, unknown>>({
   isLoading,
   onCreateNew,
   disabled = false,
-  newEntityFieldName,
   entityIdFieldName,
   onEntityCreated,
 }: EntitySelectorProps<T>) {
@@ -399,16 +398,10 @@ export function EntitySelector<T extends Record<string, unknown>>({
         name={entityIdFieldName}
         control={control}
         render={({ field, fieldState: fs }) => {
-          // useEffect에서 처리하기 위해 값만 저장
-          // render 함수 내에서 직접 setState를 호출하지 않음
-          useEffect(() => {
-            if (fs !== fieldState) {
-              setFieldState(fs);
-            }
-            setControllerValue(field.value);
-          }, [field.value, fs]);
-
-          // 빈 엘리먼트 반환
+          if (fs !== fieldState) {
+            setFieldState(fs);
+          }
+          setControllerValue(field.value);
           return <></>;
         }}
       />

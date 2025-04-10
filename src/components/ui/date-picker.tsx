@@ -1,16 +1,13 @@
-import * as React from "react";
-import { CalendarIcon, ChevronLeft, ChevronRight } from "lucide-react";
 import {
   format,
-  addMonths,
-  subMonths,
   getYear,
-  setYear,
   setMonth,
+  setYear
 } from "date-fns";
 import { ko } from "date-fns/locale";
+import { CalendarIcon } from "lucide-react";
+import * as React from "react";
 
-import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import {
@@ -25,6 +22,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { cn } from "@/lib/utils";
 
 interface DatePickerProps {
   date: Date | undefined;
@@ -72,14 +70,6 @@ export function DatePicker({
   const handleMonthChange = (monthIndex: string) => {
     const newDate = setMonth(currentMonth, Number.parseInt(monthIndex));
     setCurrentMonth(newDate);
-  };
-
-  const handlePrevMonth = () => {
-    setCurrentMonth(subMonths(currentMonth, 1));
-  };
-
-  const handleNextMonth = () => {
-    setCurrentMonth(addMonths(currentMonth, 1));
   };
 
   return (

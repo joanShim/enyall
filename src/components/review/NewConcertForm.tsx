@@ -12,7 +12,7 @@ import { useReviewFormStore } from "@/store/reviewFormStore";
 import { createBrowserSupabaseClient } from "@/utils/supabase/client";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
-import { useState, useCallback, useEffect } from "react";
+import { useCallback, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { DateTimeSelector } from "./DateTimePicker";
@@ -38,7 +38,6 @@ export default function NewConcertForm() {
     handleSubmit,
     formState: { errors },
     setValue,
-    getValues,
   } = useForm<NewConcertFormSchema>({
     resolver: zodResolver(newConcertSchema),
     defaultValues: {
@@ -222,7 +221,7 @@ export default function NewConcertForm() {
           <Controller
             name="artistId"
             control={control}
-            render={({ field }) => (
+            render={() => (
               <EntitySelector
                 type="artist"
                 label="아티스트"
