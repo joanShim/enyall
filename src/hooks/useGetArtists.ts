@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Artist } from "@/types/artist";
 import { createBrowserSupabaseClient } from "@/utils/supabase/client";
 
@@ -11,34 +11,40 @@ export function useGetArtists() {
 
   const supabase = createBrowserSupabaseClient();
 
-  useEffect(() => {
-    async function fetchArtists() {
-      try {
-        setIsLoading(true);
-        setError(null);
+  const fetchArtists = useCallback(async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
 
-        const { data, error } = await supabase
-          .from("artists")
-          .select("*")
-          .order("name_official");
+      const { data, error } = await supabase
+        .from("artists")
+        .select("*")
+        .order("name_official");
 
-        if (error) throw new Error(error.message);
+      if (error) throw new Error(error.message);
 
-        setArtists(data || []);
-      } catch (err) {
-        console.error("아티스트 목록을 불러오는데 실패했습니다:", err);
-        setError(
-          err instanceof Error
-            ? err
-            : new Error("아티스트 목록을 불러오는데 실패했습니다"),
-        );
-      } finally {
-        setIsLoading(false);
-      }
+      setArtists(data || []);
+    } catch (err) {
+      console.error("아티스트 목록을 불러오는데 실패했습니다:", err);
+      setError(
+        err instanceof Error
+          ? err
+          : new Error("아티스트 목록을 불러오는데 실패했습니다"),
+      );
+    } finally {
+      setIsLoading(false);
     }
-
-    fetchArtists();
   }, [supabase]);
 
-  return { artists, isLoading, error };
+  // 첫 렌더링시 데이터 로드
+  useEffect(() => {
+    fetchArtists();
+  }, [fetchArtists]);
+
+  // 데이터를 강제로 다시 불러오는 mutate 함수
+  const mutate = useCallback(() => {
+    fetchArtists();
+  }, [fetchArtists]);
+
+  return { artists, isLoading, error, mutate };
 }
