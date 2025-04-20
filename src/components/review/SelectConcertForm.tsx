@@ -50,7 +50,7 @@ function SelectConcertFormContent() {
   };
 
   const handleCreateNewConcert = () => {
-    router.push("/new/new-concert");
+    router.push("/new-concert");
   };
 
   return (

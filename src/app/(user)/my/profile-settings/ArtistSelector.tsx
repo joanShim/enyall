@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import { Label } from "@/components/ui/label";
-import { ChevronsUpDown } from "lucide-react";
+import { ChevronsUpDown, Plus } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import {
   Popover,
@@ -11,6 +11,8 @@ import {
 } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
 import { Artist } from "@/types/artist";
+import { toast } from "sonner";
+import { useCreateArtist } from "@/hooks/useCreateArtist";
 
 interface ArtistSelectorProps {
   initialSelectedArtists?: Artist[];
@@ -58,6 +60,28 @@ export function ArtistSelector({
     artist.name_official.toLowerCase().includes(searchTerm.toLowerCase()),
   );
 
+  const createArtist = useCreateArtist();
+  const [isAdding, setIsAdding] = useState(false);
+
+  // 새 아티스트 추가 처리
+  const handleAddNewArtist = async () => {
+    if (!searchTerm.trim()) return;
+
+    try {
+      setIsAdding(true);
+      const newArtist = await createArtist.mutateAsync(searchTerm.trim());
+
+      // 새로 추가된 아티스트 선택
+      handleSelectArtist(newArtist);
+      toast.success("새로운 아티스트가 추가되었습니다");
+    } catch (error) {
+      toast.error("아티스트 추가에 실패했습니다");
+      console.error("Artist creation error:", error);
+    } finally {
+      setIsAdding(false);
+    }
+  };
+
   // 아티스트 선택 처리
   const handleSelectArtist = (artist: Artist) => {
     if (selectedArtists.length < maxSelections) {
@@ -94,7 +118,7 @@ export function ArtistSelector({
           </Button>
         </PopoverTrigger>
         <PopoverContent className="w-full p-2">
-          <div className="space-y-2">
+          <div className="w-full space-y-2">
             <Input
               ref={inputRef}
               placeholder="아티스트 검색..."
@@ -117,11 +141,24 @@ export function ArtistSelector({
                   ))}
                 </div>
               </div>
+            ) : searchTerm.trim() ? (
+              <div className="space-y-2">
+                <div className="py-2 text-center text-sm text-gray-500">
+                  검색 결과가 없습니다
+                </div>
+                <Button
+                  variant="outline"
+                  className="w-full"
+                  onClick={handleAddNewArtist}
+                  disabled={isAdding}
+                >
+                  <Plus className="mr-2 h-4 w-4" />
+                  {isAdding ? "추가 중..." : `"${searchTerm}" 새로 추가하기`}
+                </Button>
+              </div>
             ) : (
               <div className="py-2 text-center text-sm text-gray-500">
-                {searchTerm
-                  ? "검색 결과가 없습니다"
-                  : "아티스트를 검색해주세요"}
+                아티스트를 검색해주세요
               </div>
             )}
           </div>

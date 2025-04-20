@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { createBrowserSupabaseClient } from "@/utils/supabase/client";
 
 type Venue = {
@@ -16,34 +16,40 @@ export function useGetVenues() {
 
   const supabase = createBrowserSupabaseClient();
 
-  useEffect(() => {
-    async function fetchVenues() {
-      try {
-        setIsLoading(true);
-        setError(null);
+  const fetchVenues = useCallback(async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
 
-        const { data, error } = await supabase
-          .from("venues")
-          .select("id, name, address")
-          .order("name");
+      const { data, error } = await supabase
+        .from("venues")
+        .select("id, name, address")
+        .order("name");
 
-        if (error) throw new Error(error.message);
+      if (error) throw new Error(error.message);
 
-        setVenues(data || []);
-      } catch (err) {
-        console.error("공연장 목록을 불러오는데 실패했습니다:", err);
-        setError(
-          err instanceof Error
-            ? err
-            : new Error("공연장 목록을 불러오는데 실패했습니다"),
-        );
-      } finally {
-        setIsLoading(false);
-      }
+      setVenues(data || []);
+    } catch (err) {
+      console.error("공연장 목록을 불러오는데 실패했습니다:", err);
+      setError(
+        err instanceof Error
+          ? err
+          : new Error("공연장 목록을 불러오는데 실패했습니다"),
+      );
+    } finally {
+      setIsLoading(false);
     }
-
-    fetchVenues();
   }, [supabase]);
 
-  return { venues, isLoading, error };
+  // 첫 렌더링시 데이터 로드
+  useEffect(() => {
+    fetchVenues();
+  }, [fetchVenues]);
+
+  // 데이터를 강제로 다시 불러오는 mutate 함수
+  const mutate = useCallback(() => {
+    fetchVenues();
+  }, [fetchVenues]);
+
+  return { venues, isLoading, error, mutate };
 }

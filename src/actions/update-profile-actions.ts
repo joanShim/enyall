@@ -2,6 +2,7 @@
 
 import { createServerSupabaseClient } from "@/utils/supabase/server";
 import { revalidatePath } from "next/cache";
+import { revalidateTag } from "next/cache";
 
 // 아티스트 목록
 export async function getArtists() {
@@ -40,8 +41,17 @@ export async function updateProfileImage(avatarUrl: string) {
       return { error: "프로필 이미지 업데이트에 실패했습니다." };
     }
 
-    revalidatePath("/my");
-    revalidatePath("/my/profile-settings");
+    // 프로필 관련 모든 경로 revalidate
+    revalidatePath("/", "layout");
+    revalidatePath("/my", "layout");
+    revalidatePath("/feed", "layout");
+    revalidatePath("/browse", "layout");
+
+    // 프로필 관련 태그 revalidate
+    revalidateTag("user-profile");
+    revalidateTag("user-avatar");
+    revalidateTag("user-avatar-cache");
+
     return { success: true };
   } catch (error) {
     console.error("프로필 이미지 업데이트 중 오류:", error);
@@ -82,8 +92,18 @@ export async function updateUserProfile(formData: FormData) {
       };
     }
 
+    // 프로필 관련 모든 경로 revalidate
+    revalidatePath("/", "layout");
     revalidatePath("/my");
     revalidatePath("/my/profile-settings");
+    revalidatePath("/feed", "layout");
+    revalidatePath("/browse", "layout");
+
+    // 프로필 관련 태그 revalidate
+    revalidateTag("user-profile");
+    revalidateTag("user-avatar");
+    revalidateTag("user-avatar-cache");
+
     return { success: true };
   } catch (error) {
     console.error("프로필 업데이트 중 오류:", error);

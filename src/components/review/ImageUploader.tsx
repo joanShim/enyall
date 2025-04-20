@@ -19,6 +19,7 @@ interface ImageUploaderProps {
   onChange: (images: ImageFile[]) => void;
   onDeletedImages?: (urls: string[]) => void; // 삭제된 기존 이미지 URL 반환
   disabled?: boolean;
+  maxImages?: number; // 최대 이미지 개수
 }
 
 export function ImageUploader({
@@ -27,6 +28,7 @@ export function ImageUploader({
   onChange,
   onDeletedImages,
   disabled = false,
+  maxImages = 5, // 기본값 5개
 }: ImageUploaderProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [deletedImages, setDeletedImages] = useState<string[]>([]);
@@ -56,6 +58,12 @@ export function ImageUploader({
       const maxUploadSize = 5 * 1024 * 1024; // 5MB
 
       try {
+        // 최대 이미지 개수 체크
+        if (newImages.length + files.length > maxImages) {
+          toast.error(`최대 ${maxImages}개의 이미지만 업로드 가능합니다.`);
+          return;
+        }
+
         // 각 파일 처리
         for (let i = 0; i < files.length; i++) {
           const file = files[i];
@@ -96,7 +104,7 @@ export function ImageUploader({
         event.target.value = "";
       }
     },
-    [images, onChange],
+    [images, onChange, maxImages],
   );
 
   const removeImage = (index: number) => {
@@ -130,7 +138,7 @@ export function ImageUploader({
           type="button"
           variant="outline"
           onClick={() => document.getElementById("image-upload")?.click()}
-          disabled={disabled || isLoading}
+          disabled={disabled || isLoading || images.length >= maxImages}
         >
           <Upload className="mr-2 h-4 w-4" />
           {isLoading ? "처리 중..." : "사진 추가하기"}
@@ -142,10 +150,10 @@ export function ImageUploader({
           accept="image/*"
           className="hidden"
           onChange={handleImageSelect}
-          disabled={disabled || isLoading}
+          disabled={disabled || isLoading || images.length >= maxImages}
         />
         <p className="text-xs text-muted-foreground">
-          최대 5MB, JPG, PNG, GIF 파일 지원
+          최대 {maxImages}개, 5MB, JPG, PNG, GIF 파일 지원
         </p>
       </div>
 
