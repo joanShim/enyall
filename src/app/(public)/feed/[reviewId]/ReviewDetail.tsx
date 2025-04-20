@@ -9,7 +9,6 @@ type ArtistJson = {
 };
 
 export default function ReviewDetail({ review }: { review: Review }) {
-  console.log(review);
   const concert = review.concert;
   const artistNames = concert?.artists_json
     ? (concert.artists_json as ArtistJson[])
@@ -24,18 +23,19 @@ export default function ReviewDetail({ review }: { review: Review }) {
   return (
     <section className="flex flex-col gap-4">
       <div className="info flex gap-4">
-        <div className="relative aspect-[3/4] overflow-hidden border bg-gray-100">
+        <div className="relative aspect-[3/4] w-24 overflow-hidden rounded-md border bg-gray-100">
           {concert?.poster_url ? (
             <Image
               src={concert.poster_url}
               alt={concert.title}
               fill
-              sizes="30vw, 20vw"
-              className="object-cover transition group-hover:scale-105"
+              sizes="96px"
+              className="object-cover"
+              priority
             />
           ) : (
             <div className="flex h-full items-center justify-center text-gray-400">
-              No Image
+              <span className="text-xs">No Poster</span>
             </div>
           )}
         </div>

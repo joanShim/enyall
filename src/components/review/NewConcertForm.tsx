@@ -1,5 +1,3 @@
-"use client";
-
 import { EntitySelector } from "@/components/review/EntitySelector";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -16,9 +14,12 @@ import { useCallback, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { DateTimeSelector } from "./DateTimePicker";
+import { PosterUploader, PosterFile } from "@/components/review/PosterUploader";
+import { v4 as uuidv4 } from "uuid";
 
 export default function NewConcertForm() {
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [poster, setPoster] = useState<PosterFile | null>(null);
   const router = useRouter();
   const { setData } = useReviewFormStore();
   const supabase = createBrowserSupabaseClient();
@@ -61,6 +62,42 @@ export default function NewConcertForm() {
       }));
 
     setValue("schedules", validSchedules);
+  };
+
+  // 이미지 파일 업로드 함수
+  const uploadPosterToStorage = async (): Promise<string | null> => {
+    if (!poster) return null;
+
+    if (poster.isExisting) return poster.previewUrl;
+
+    try {
+      if (!poster.file) return null;
+
+      // 파일 이름 생성
+      const fileExt = poster.file.name.split(".").pop();
+      const fileName = `${uuidv4()}.${fileExt}`;
+      const filePath = `${fileName}`;
+
+      // Supabase Storage에 업로드
+      const { error } = await supabase.storage
+        .from("posters")
+        .upload(filePath, poster.file);
+
+      if (error) {
+        console.error(`포스터 업로드 실패: ${error.message}`);
+        return null;
+      }
+
+      // 업로드된 이미지 URL 가져오기
+      const { data: urlData } = supabase.storage
+        .from("posters")
+        .getPublicUrl(filePath);
+
+      return urlData.publicUrl;
+    } catch (error) {
+      console.error("포스터 업로드 중 오류:", error);
+      return null;
+    }
   };
 
   // 새로운 공연장 추가 함수
@@ -138,12 +175,16 @@ export default function NewConcertForm() {
         throw new Error("로그인이 필요합니다");
       }
 
-      // concerts 테이블에 등록 (artists_json 필드 제거)
+      // 포스터 이미지 업로드
+      const posterUrl = await uploadPosterToStorage();
+
+      // concerts 테이블에 등록
       const { data: newConcert, error: concertError } = await supabase
         .from("concerts")
         .insert({
           title: data.title,
           venue_id: data.venueId,
+          poster_url: posterUrl,
         })
         .select("id")
         .single();
@@ -198,6 +239,15 @@ export default function NewConcertForm() {
   return (
     <form onSubmit={handleSubmit(onSubmit)}>
       <div className="grid grid-cols-1 divide-y border-y">
+        <div className="p-2 py-4">
+          <Label>포스터 이미지</Label>
+          <PosterUploader
+            poster={poster}
+            onChange={setPoster}
+            disabled={isSubmitting}
+          />
+        </div>
+
         <div className="p-2 py-4">
           <Label htmlFor="title">타이틀</Label>
           <Controller

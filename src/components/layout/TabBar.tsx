@@ -7,6 +7,7 @@ import { Globe, Search, User } from "lucide-react";
 import { useUserAvatar } from "@/hooks/useUserAvatar";
 import { useEffect, useState } from "react";
 import { createBrowserSupabaseClient } from "@/utils/supabase/client";
+import { Session } from "@supabase/supabase-js";
 
 const navItems = [
   {
@@ -71,12 +72,14 @@ export default function TabBar() {
     // 인증 상태 변경 구독
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      setIsAuthenticated(!!session?.user);
-      if (session?.user) {
-        fetchAvatar();
-      }
-    });
+    } = supabase.auth.onAuthStateChange(
+      (_event: string, session: Session | null) => {
+        setIsAuthenticated(!!session?.user);
+        if (session?.user) {
+          fetchAvatar();
+        }
+      },
+    );
 
     return () => {
       subscription.unsubscribe();

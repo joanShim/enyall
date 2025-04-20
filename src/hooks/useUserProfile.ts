@@ -75,7 +75,9 @@ export function useUserProfile() {
         throw err;
       }
     },
-    enabled: !!profileQuery.data?.id && !!profileQuery.data?.favorites,
+    enabled: !!profileQuery.data?.id,
+    staleTime: 0,
+    placeholderData: (previousData) => previousData || [],
   });
 
   // 프로필 업데이트 뮤테이션
@@ -107,8 +109,14 @@ export function useUserProfile() {
       }
     },
     onSuccess: (data) => {
-      // 쿼리 캐시 업데이트
+      // 프로필 쿼리 데이터 즉시 업데이트
       queryClient.setQueryData(userKeys.profile(), data);
+
+      // favoriteArtists 쿼리 무효화 및 다시 가져오기
+      queryClient.invalidateQueries({
+        queryKey: userKeys.favoriteArtists(),
+        refetchType: "active",
+      });
 
       // 사용자 스토어 업데이트
       useUserStore.getState().fetchUserProfile();

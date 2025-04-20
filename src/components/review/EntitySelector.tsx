@@ -16,6 +16,7 @@ import {
   ControllerFieldState,
 } from "react-hook-form";
 import { createBrowserSupabaseClient } from "@/utils/supabase/client";
+import { Tables } from "@/types/db";
 
 type Entity = {
   id: string;
@@ -85,6 +86,20 @@ export function EntitySelector<T extends Record<string, unknown>>({
     }
   }, [controllerValue, selectedEntityId]);
 
+  // fieldState 업데이트를 위한 useEffect 추가
+  useEffect(() => {
+    if (fieldState) {
+      setFieldState(fieldState);
+    }
+  }, [fieldState]);
+
+  // controllerValue 업데이트를 위한 useEffect 추가
+  useEffect(() => {
+    if (controllerValue !== undefined) {
+      setControllerValue(controllerValue);
+    }
+  }, [controllerValue]);
+
   // 선택된 엔티티 이름 찾기
   const selectedEntity = localEntities.find(
     (entity) => entity.id === selectedEntityId,
@@ -106,7 +121,7 @@ export function EntitySelector<T extends Record<string, unknown>>({
 
         if (data) {
           setLocalEntities(
-            data.map((artist) => ({
+            data.map((artist: Tables<"artists">) => ({
               id: artist.id,
               name: artist.name_official,
             })),
@@ -120,7 +135,10 @@ export function EntitySelector<T extends Record<string, unknown>>({
 
         if (data) {
           setLocalEntities(
-            data.map((venue) => ({ id: venue.id, name: venue.name })),
+            data.map((venue: Tables<"venues">) => ({
+              id: venue.id,
+              name: venue.name,
+            })),
           );
         }
       }
@@ -369,7 +387,7 @@ export function EntitySelector<T extends Record<string, unknown>>({
                   }}
                   placeholder={`${label} 검색...`}
                   disabled={disabled}
-                  className="w-full border-none pr-8 text-sm placeholder:text-sm"
+                  className="w-full border-none pl-0 pr-8 text-sm placeholder:text-sm"
                 />
               )}
             </div>
@@ -397,13 +415,7 @@ export function EntitySelector<T extends Record<string, unknown>>({
       <Controller
         name={entityIdFieldName}
         control={control}
-        render={({ field, fieldState: fs }) => {
-          if (fs !== fieldState) {
-            setFieldState(fs);
-          }
-          setControllerValue(field.value);
-          return <></>;
-        }}
+        render={() => <></>}
       />
     </div>
   );
