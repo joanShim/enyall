@@ -15,7 +15,7 @@ import {
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Review } from "@/types/review";
-import { createBrowserSupabaseClient } from "@/utils/supabase/client";
+import { createClient } from "@/utils/supabase/client";
 import { toast } from "sonner";
 import { DeleteConfirmDialog } from "@/components/ui/delete-confirm-dialog";
 
@@ -39,7 +39,7 @@ export default function ReviewHeader({
   const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
   const [showDeleteAlert, setShowDeleteAlert] = useState(false);
-  const supabase = createBrowserSupabaseClient();
+  const supabase = createClient();
 
   const handleEdit = () => {
     setIsEditing(true);

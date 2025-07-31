@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { createBrowserSupabaseClient } from "@/utils/supabase/client";
+import { createClient } from "@/utils/supabase/client";
 
 type Venue = {
   id: string;
@@ -14,7 +14,7 @@ export function useGetVenues() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
 
-  const supabase = createBrowserSupabaseClient();
+  const supabase = createClient();
 
   const fetchVenues = useCallback(async () => {
     try {

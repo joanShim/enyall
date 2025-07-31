@@ -1,12 +1,12 @@
 "use server";
 
-import { createServerSupabaseClient } from "@/utils/supabase/server";
+import { createClient } from "@/utils/supabase/server";
 import { revalidatePath } from "next/cache";
 import { revalidateTag } from "next/cache";
 
 // 아티스트 목록
 export async function getArtists() {
-  const supabase = await createServerSupabaseClient();
+  const supabase = await createClient();
 
   const { data, error } = await supabase
     .from("artists")
@@ -23,7 +23,7 @@ export async function getArtists() {
 // 프로필 이미지 업데이트
 export async function updateProfileImage(avatarUrl: string) {
   try {
-    const supabase = await createServerSupabaseClient();
+    const supabase = await createClient();
     const {
       data: { user },
     } = await supabase.auth.getUser();
@@ -62,7 +62,7 @@ export async function updateProfileImage(avatarUrl: string) {
 // 프로필 정보 업데이트 (이미지 제외)
 export async function updateUserProfile(formData: FormData) {
   try {
-    const supabase = await createServerSupabaseClient();
+    const supabase = await createClient();
     const {
       data: { user },
     } = await supabase.auth.getUser();

@@ -1,12 +1,12 @@
 "use client";
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { createBrowserSupabaseClient } from "@/utils/supabase/client";
+import { createClient } from "@/utils/supabase/client";
 import { Artist } from "@/types/artist";
 import { artistKeys } from "./useArtists";
 
 export function useCreateArtist() {
-  const supabase = createBrowserSupabaseClient();
+  const supabase = createClient();
   const queryClient = useQueryClient();
 
   return useMutation({

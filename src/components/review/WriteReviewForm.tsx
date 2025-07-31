@@ -13,7 +13,7 @@ import { useRouter } from "next/navigation";
 import { Textarea } from "@/components/ui/textarea";
 import { ConcertInfo } from "@/components/review/ConcertInfo";
 import { useReviewFormStore } from "@/store/reviewFormStore";
-import { createBrowserSupabaseClient } from "@/utils/supabase/client";
+import { createClient } from "@/utils/supabase/client";
 import { toast } from "sonner";
 import { z } from "zod";
 import { reviewFormSchema } from "@/schemas/reviewForm";
@@ -54,7 +54,7 @@ const WriteReviewForm = forwardRef<HTMLFormElement, WriteReviewFormProps>(
       : concertId || null;
 
     const { concert, isLoading, error } = useGetConcert(effectiveConcertId);
-    const supabase = createBrowserSupabaseClient();
+    const supabase = createClient();
 
     const {
       register,

@@ -1,16 +1,8 @@
-import { type NextRequest } from "next/server";
-import { updateSession } from "@/utils/supabase/middleware";
-// PWA 관련 파일 및 정적 자산
-// const staticAssets = [
-//   "/sw.js",
-//   "/manifest.json",
-//   "/offline.html",
-//   "/icons/",
-//   "/favicon.ico",
-// ];
+import { type NextRequest } from 'next/server'
+import { updateSession } from '@/utils/supabase/middleware'
 
 export async function middleware(request: NextRequest) {
-  return await updateSession(request);
+  return await updateSession(request)
 }
 
 export const config = {
@@ -20,8 +12,8 @@ export const config = {
      * - _next/static (static files)
      * - _next/image (image optimization files)
      * - favicon.ico (favicon file)
-     * - 이미지 파일 확장자들 (.svg, .png, .jpg, .jpeg, .gif, .webp)
+     * Feel free to modify this pattern to include more paths.
      */
-    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
+    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
   ],
-};
+}

@@ -2,33 +2,23 @@
 
 import { useRouter } from "next/navigation";
 import { Button } from "../ui/button";
-import { createBrowserSupabaseClient } from "@/utils/supabase/client";
-import { useUserStore } from "@/store/userStore";
+import { createClient } from "@/utils/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
-import { useUserAvatar } from "@/hooks/useUserAvatar";
 
 export default function SignOutButton() {
   const router = useRouter();
-  const clearUserProfile = useUserStore((state) => state.clearUserProfile);
   const queryClient = useQueryClient();
-  const { clearAvatar } = useUserAvatar();
 
   const handleSignOut = async () => {
     try {
       // 1. Supabase에서 로그아웃
-      const supabase = createBrowserSupabaseClient();
+      const supabase = createClient();
       await supabase.auth.signOut();
 
-      // 2. React Query 캐시 초기화
+      // 2. React Query 캐시 초기화 (모든 사용자 관련 데이터)
       queryClient.clear();
 
-      // 3. Zustand 스토어 초기화
-      clearUserProfile();
-
-      // 4. 아바타 캐시 초기화
-      clearAvatar();
-
-      // 5. 로그인 페이지로 리다이렉트
+      // 3. 로그인 페이지로 리다이렉트
       router.push("/auth/signIn");
       router.refresh();
     } catch (error) {

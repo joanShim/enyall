@@ -1,11 +1,11 @@
 "use server";
 
-import { createServerSupabaseClient } from "@/utils/supabase/server";
-import { Review } from "@/types/review";
+import { createClient } from "@/utils/supabase/server";
+import { Review, ReviewConcert } from "@/types/review";
 
 export async function getReview(reviewId: string) {
   try {
-    const supabase = await createServerSupabaseClient();
+    const supabase = await createClient();
 
     // 리뷰 정보 가져오기 (images 필드 추가)
     const { data: reviewData, error } = await supabase
@@ -63,7 +63,8 @@ export async function getReview(reviewId: string) {
       images: images,
       created_at: reviewData.created_at,
       user_id: reviewData.user_id,
-      concert: reviewData.concert,
+      // todo: 타입 수정
+      concert: reviewData.concert as unknown as ReviewConcert,
     };
 
     // 사용자 정보를 별도로 가져옵니다

@@ -4,10 +4,8 @@ import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { Globe, Search, User } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
 import { useUserAvatar } from "@/hooks/useUserAvatar";
-import { useEffect, useState } from "react";
-import { createBrowserSupabaseClient } from "@/utils/supabase/client";
-import { Session } from "@supabase/supabase-js";
 
 const navItems = [
   {
@@ -24,67 +22,33 @@ const navItems = [
 
 export default function TabBar() {
   const pathname = usePathname();
-  const { avatarUrl, setAvatarUrl } = useUserAvatar();
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const { user, isLoading } = useAuth();
+  const { avatarUrl, isLoading: avatarLoading } = useUserAvatar();
 
-  useEffect(() => {
-    const supabase = createBrowserSupabaseClient();
-
-    const fetchAvatar = async () => {
-      try {
-        const {
-          data: { user },
-        } = await supabase.auth.getUser();
-
-        if (!user) return;
-
-        const { data, error } = await supabase
-          .from("users")
-          .select("avatar_url")
-          .eq("id", user.id)
-          .single();
-
-        if (error) throw error;
-
-        if (data?.avatar_url) {
-          setAvatarUrl(data.avatar_url);
-        }
-      } catch (error) {
-        console.error("Error fetching avatar:", error);
-      }
-    };
-
-    const checkAuthAndFetchAvatar = async () => {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-
-      setIsAuthenticated(!!user);
-
-      if (user) {
-        fetchAvatar();
-      }
-    };
-
-    // 초기 인증 상태 확인
-    checkAuthAndFetchAvatar();
-
-    // 인증 상태 변경 구독
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange(
-      (_event: string, session: Session | null) => {
-        setIsAuthenticated(!!session?.user);
-        if (session?.user) {
-          fetchAvatar();
-        }
-      },
+  // 로딩 중일 때는 기본 UI 표시
+  if (isLoading) {
+    return (
+      <nav className="bottom-tabs-padding fixed bottom-0 left-0 right-0 z-50 mx-auto flex max-w-md items-center justify-around border-t bg-white px-2 py-4">
+        {navItems.map((item) => {
+          const IconComponent = item.icon;
+          return (
+            <Link
+              key={item.href}
+              href={item.href}
+              className="flex h-full w-full flex-col items-center justify-center"
+            >
+              <IconComponent size={20} className="text-gray-500" />
+              <span className="mt-1 text-xs">{item.label}</span>
+            </Link>
+          );
+        })}
+        <div className="flex h-full w-full flex-col items-center justify-center">
+          <User size={20} className="text-gray-500" />
+          <span className="mt-1 text-xs">로그인</span>
+        </div>
+      </nav>
     );
-
-    return () => {
-      subscription.unsubscribe();
-    };
-  }, [setAvatarUrl]);
+  }
 
   return (
     <nav className="bottom-tabs-padding fixed bottom-0 left-0 right-0 z-50 mx-auto flex max-w-md items-center justify-around border-t bg-white px-2 py-4">
@@ -110,7 +74,7 @@ export default function TabBar() {
         );
       })}
 
-      {isAuthenticated ? (
+      {user ? (
         <Link
           href="/my"
           className={`flex h-full w-full flex-col items-center justify-center ${
@@ -122,7 +86,7 @@ export default function TabBar() {
               pathname === "/my" ? "border-2" : "border-1"
             }`}
           >
-            {avatarUrl && (
+            {avatarUrl && !avatarLoading ? (
               <Image
                 src={avatarUrl}
                 alt="프로필 이미지"
@@ -130,6 +94,8 @@ export default function TabBar() {
                 sizes="20px"
                 className="object-cover"
               />
+            ) : (
+              <div className="h-full w-full animate-pulse bg-gray-200" />
             )}
           </div>
           <span className="mt-1 text-xs">마이</span>

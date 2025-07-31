@@ -1,18 +1,16 @@
 "use client";
 
 import { Button } from "../ui/button";
-import { createBrowserSupabaseClient } from "@/utils/supabase/client";
+import { createClient } from "@/utils/supabase/client";
 import { toast } from "sonner";
 
 export default function SignInWithGoogle() {
   const handleSignIn = async () => {
     try {
-      const supabase = createBrowserSupabaseClient();
+      const supabase = createClient();
 
-      // 리다이렉트 URL 설정
-      const redirectUrl = process.env.NEXT_PUBLIC_VERCEL_URL
-        ? `https://${process.env.NEXT_PUBLIC_VERCEL_URL}/auth/callback`
-        : "http://localhost:3000/auth/callback";
+      const currentOrigin = window.location.origin;
+      const redirectUrl = `${currentOrigin}/auth/callback`;
 
       const { error } = await supabase.auth.signInWithOAuth({
         provider: "google",

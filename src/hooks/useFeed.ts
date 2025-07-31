@@ -1,7 +1,7 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { createBrowserSupabaseClient } from "@/utils/supabase/client";
+import { createClient } from "@/utils/supabase/client";
 import { Review } from "@/types/review";
 
 // 피드 쿼리 키
@@ -12,7 +12,7 @@ export const feedKeys = {
 };
 
 export function useFeed() {
-  const supabase = createBrowserSupabaseClient();
+  const supabase = createClient();
 
   const query = useQuery<Review[], Error>({
     queryKey: feedKeys.list(),

@@ -7,7 +7,7 @@ import { useGetVenues } from "@/hooks/useGetVenues";
 import type { NewConcertFormSchema } from "@/schemas/reviewForm";
 import { newConcertSchema } from "@/schemas/reviewForm";
 import { useReviewFormStore } from "@/store/reviewFormStore";
-import { createBrowserSupabaseClient } from "@/utils/supabase/client";
+import { createClient } from "@/utils/supabase/client";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
 import { useCallback, useState } from "react";
@@ -22,7 +22,7 @@ export default function NewConcertForm() {
   const [poster, setPoster] = useState<PosterFile | null>(null);
   const router = useRouter();
   const { setData } = useReviewFormStore();
-  const supabase = createBrowserSupabaseClient();
+  const supabase = createClient();
   const {
     artists,
     isLoading: isLoadingArtists,
