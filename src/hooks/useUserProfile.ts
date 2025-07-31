@@ -1,15 +1,13 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { createBrowserSupabaseClient } from "@/utils/supabase/client";
-import { useUserStore } from "@/store/userStore";
+import { createClient } from "@/utils/supabase/client";
 import { Tables } from "@/types/db";
 import { Artist } from "@/types/artist";
 import { useUser, userKeys } from "./useUser";
 
 export function useUserProfile() {
-  const { userProfile } = useUserStore();
-  const supabase = createBrowserSupabaseClient();
+  const supabase = createClient();
   const queryClient = useQueryClient();
   const { data: user, isLoading: isUserLoading } = useUser();
 
@@ -17,11 +15,6 @@ export function useUserProfile() {
   const profileQuery = useQuery({
     queryKey: userKeys.profile(),
     queryFn: async () => {
-      // 스토어에 이미 프로필이 있으면 사용
-      if (userProfile) {
-        return userProfile;
-      }
-
       if (!user) {
         throw new Error("인증된 사용자가 필요합니다");
       }
@@ -44,6 +37,7 @@ export function useUserProfile() {
     },
     enabled: !isUserLoading && !!user,
     retry: 1,
+    staleTime: 5 * 60 * 1000, // 5분간 fresh 상태 유지
   });
 
   // 관심 아티스트 목록 조회 쿼리
@@ -118,8 +112,11 @@ export function useUserProfile() {
         refetchType: "active",
       });
 
-      // 사용자 스토어 업데이트
-      useUserStore.getState().fetchUserProfile();
+      // 아바타 쿼리도 무효화 (프로필 이미지가 변경될 수 있음)
+      queryClient.invalidateQueries({
+        queryKey: userKeys.avatar(),
+        refetchType: "active",
+      });
     },
   });
 

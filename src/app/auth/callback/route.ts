@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 // The client you created from the Server-Side Auth instructions
-import { createServerSupabaseClient } from "@/utils/supabase/server";
+import { createClient } from "@/utils/supabase/server";
 
 export async function GET(request: Request) {
   const requestUrl = new URL(request.url);
@@ -13,7 +13,7 @@ export async function GET(request: Request) {
   }
 
   try {
-    const supabase = await createServerSupabaseClient();
+    const supabase = await createClient();
     const {
       error,
       data: { user },
@@ -40,14 +40,8 @@ export async function GET(request: Request) {
       );
     }
 
-    // 환경에 따른 리다이렉트 URL 설정
-    const forwardedHost = request.headers.get("x-forwarded-host");
-    const isLocalEnv = process.env.NODE_ENV === "development";
-    const redirectUrl = isLocalEnv
-      ? `${origin}${next}`
-      : forwardedHost
-        ? `https://${forwardedHost}${next}`
-        : `${origin}${next}`;
+    // 현재 요청의 origin을 사용하여 리다이렉트 URL 설정
+    const redirectUrl = `${origin}${next}`;
 
     return NextResponse.redirect(redirectUrl);
   } catch {

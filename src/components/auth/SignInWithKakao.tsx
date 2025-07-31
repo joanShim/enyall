@@ -1,18 +1,18 @@
 "use client";
 
 import { Button } from "../ui/button";
-import { createBrowserSupabaseClient } from "@/utils/supabase/client";
+import { createClient } from "@/utils/supabase/client";
 import { toast } from "sonner";
 
 export default function SignInWithKakao() {
   const handleSignIn = async () => {
     try {
-      const supabase = createBrowserSupabaseClient();
+      const supabase = createClient();
+      // 현재 접속한 주소를 기반으로 리다이렉트 URL 설정
+      const currentOrigin = window.location.origin;
+      const redirectUrl = `${currentOrigin}/auth/callback`;
 
-      // 리다이렉트 URL 설정
-      const redirectUrl = process.env.NEXT_PUBLIC_VERCEL_URL
-        ? `https://${process.env.NEXT_PUBLIC_VERCEL_URL}/auth/callback`
-        : "http://localhost:3000/auth/callback";
+      console.log("redirectUrl", redirectUrl);
 
       const { error } = await supabase.auth.signInWithOAuth({
         provider: "kakao",

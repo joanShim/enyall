@@ -15,7 +15,7 @@ import {
   Path,
   ControllerFieldState,
 } from "react-hook-form";
-import { createBrowserSupabaseClient } from "@/utils/supabase/client";
+import { createClient } from "@/utils/supabase/client";
 import { Tables } from "@/types/db";
 
 type Entity = {
@@ -61,7 +61,7 @@ export function EntitySelector<T extends Record<string, unknown>>({
   const [controllerValue, setControllerValue] = useState<unknown>(null);
 
   const inputRef = useRef<HTMLInputElement>(null);
-  const supabase = createBrowserSupabaseClient();
+  const supabase = createClient();
 
   // entities prop이 변경될 때 localEntities 업데이트
   useEffect(() => {

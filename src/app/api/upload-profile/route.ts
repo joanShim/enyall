@@ -1,4 +1,4 @@
-import { createServerSupabaseClient } from "@/utils/supabase/server";
+import { createClient } from "@/utils/supabase/server";
 import { NextResponse } from "next/server";
 import sharp from "sharp";
 import { v4 as uuidv4 } from "uuid";
@@ -23,7 +23,7 @@ export async function POST(request: Request) {
       .toBuffer();
 
     // Supabase 클라이언트 생성
-    const supabase = await createServerSupabaseClient();
+    const supabase = await createClient();
 
     // 파일 이름 생성
     const fileName = `${uuidv4()}.webp`;

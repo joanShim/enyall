@@ -1,13 +1,14 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { createBrowserSupabaseClient } from "@/utils/supabase/client";
+import { createClient } from "@/utils/supabase/client";
 
 // 사용자 관련 쿼리 키
 export const userKeys = {
   all: ["user"] as const,
   current: () => [...userKeys.all, "current"] as const,
   profile: () => [...userKeys.all, "profile"] as const,
+  avatar: () => [...userKeys.all, "avatar"] as const,
   reviews: () => [...userKeys.all, "reviews"] as const,
   favorites: () => [...userKeys.all, "favorites"] as const,
   favoriteArtists: () => [...userKeys.all, "favoriteArtists"] as const,
@@ -15,7 +16,7 @@ export const userKeys = {
 
 // 기본 사용자 정보를 가져오는 훅
 export function useUser() {
-  const supabase = createBrowserSupabaseClient();
+  const supabase = createClient();
 
   return useQuery({
     queryKey: userKeys.current(),

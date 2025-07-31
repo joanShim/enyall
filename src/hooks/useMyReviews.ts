@@ -1,7 +1,7 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { createBrowserSupabaseClient } from "@/utils/supabase/client";
+import { createClient } from "@/utils/supabase/client";
 import { Review } from "@/types/review";
 import { useUser, userKeys } from "./useUser";
 
@@ -13,7 +13,7 @@ export const reviewKeys = {
 };
 
 export function useMyReviews() {
-  const supabase = createBrowserSupabaseClient();
+  const supabase = createClient();
   const { data: user, isLoading: isUserLoading } = useUser();
 
   const query = useQuery<Review[], Error>({

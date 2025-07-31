@@ -2,14 +2,14 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { Artist } from "@/types/artist";
-import { createBrowserSupabaseClient } from "@/utils/supabase/client";
+import { createClient } from "@/utils/supabase/client";
 
 export function useGetArtists() {
   const [artists, setArtists] = useState<Artist[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
 
-  const supabase = createBrowserSupabaseClient();
+  const supabase = createClient();
 
   const fetchArtists = useCallback(async () => {
     try {

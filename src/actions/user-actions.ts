@@ -1,8 +1,8 @@
-import { createServerSupabaseClient } from "@/utils/supabase/server";
+import { createClient } from "@/utils/supabase/server";
 
 // 사용자의 좋아하는 아티스트 목록을 가져오는 서버 액션
 export async function getFavoriteArtists(userId: string) {
-  const supabase = await createServerSupabaseClient();
+  const supabase = await createClient();
 
   // 사용자 정보 가져오기
   const { data: userData, error: userError } = await supabase
@@ -37,7 +37,7 @@ export async function getFavoriteArtists(userId: string) {
 
 // 사용자 정보를 가져오는 서버 액션
 export async function getUserProfile(userId: string) {
-  const supabase = await createServerSupabaseClient();
+  const supabase = await createClient();
 
   const { data, error } = await supabase
     .from("users")
@@ -55,7 +55,7 @@ export async function getUserProfile(userId: string) {
 
 // 사용자 정보와 좋아하는 아티스트를 한 번에 가져오는 서버 액션
 export async function getUserProfileWithFavorites(userId: string) {
-  const supabase = await createServerSupabaseClient();
+  const supabase = await createClient();
 
   // 사용자 정보 가져오기
   const { data: user, error: userError } = await supabase

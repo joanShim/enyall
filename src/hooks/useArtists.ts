@@ -1,7 +1,7 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { createBrowserSupabaseClient } from "@/utils/supabase/client";
+import { createClient } from "@/utils/supabase/client";
 import { Artist } from "@/types/artist";
 
 // 쿼리 키 상수
@@ -11,7 +11,7 @@ export const artistKeys = {
 };
 
 export function useArtists() {
-  const supabase = createBrowserSupabaseClient();
+  const supabase = createClient();
 
   const query = useQuery({
     queryKey: artistKeys.list(),
