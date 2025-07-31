@@ -33,7 +33,7 @@ export type Review = {
     name: string;
     avatar_url: string;
   };
-  concert: ReviewConcert | null; // 수정된 타입 사용
+  concert: ReviewConcert | null; 
   concert_id?: string;
 };
 
