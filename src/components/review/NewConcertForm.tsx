@@ -1,4 +1,5 @@
 import { EntitySelector } from "@/components/review/EntitySelector";
+import { PosterFile, PosterUploader } from "@/components/review/PosterUploader";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -13,9 +14,8 @@ import { useRouter } from "next/navigation";
 import { useCallback, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { toast } from "sonner";
-import { DateTimeSelector } from "./DateTimePicker";
-import { PosterUploader, PosterFile } from "@/components/review/PosterUploader";
 import { v4 as uuidv4 } from "uuid";
+import { DateTimeSelector } from "./DateTimePicker";
 
 export default function NewConcertForm() {
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -50,19 +50,20 @@ export default function NewConcertForm() {
   });
 
   // 일정 데이터 변경 처리 함수
-  const handleDateTimeChange = (
-    entries: { id: string; date?: Date; time?: string }[],
-  ) => {
-    // 폼 데이터 업데이트
-    const validSchedules = entries
-      .filter((entry) => entry.date) // 날짜가 있는 엔트리만 필터링
-      .map((entry) => ({
-        concertDate: entry.date as Date, // 필터링했으므로 타입 변환 안전
-        startTime: entry.time || "19:00",
-      }));
+  const handleDateTimeChange = useCallback(
+    (entries: { id: string; date?: Date; time?: string }[]) => {
+      // 폼 데이터 업데이트
+      const validSchedules = entries
+        .filter((entry) => entry.date)
+        .map((entry) => ({
+          concertDate: entry.date as Date,
+          startTime: entry.time || "19:00",
+        }));
 
-    setValue("schedules", validSchedules);
-  };
+      setValue("schedules", validSchedules);
+    },
+    [setValue],
+  );
 
   // 이미지 파일 업로드 함수
   const uploadPosterToStorage = async (): Promise<string | null> => {
@@ -192,6 +193,8 @@ export default function NewConcertForm() {
       if (concertError) throw concertError;
 
       // 모든 일정에 대해 concert_schedules 테이블에 등록
+  
+
       const scheduleInserts = data.schedules.map((schedule) => ({
         concert_id: newConcert.id,
         schedule_date: schedule.concertDate.toISOString().split("T")[0], // YYYY-MM-DD 형식
@@ -238,7 +241,7 @@ export default function NewConcertForm() {
 
   return (
     <form onSubmit={handleSubmit(onSubmit)}>
-      <div className="grid grid-cols-1 divide-y border-y">
+      <div className="grid grid-cols-1">
         <div className="p-2 py-4">
           <Label>포스터 이미지</Label>
           <PosterUploader
@@ -258,7 +261,7 @@ export default function NewConcertForm() {
                 {...field}
                 placeholder="콘서트 제목을 입력하세요"
                 disabled={isSubmitting}
-                className="border-none p-0"
+                className=""
               />
             )}
           />

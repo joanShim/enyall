@@ -387,7 +387,7 @@ export function EntitySelector<T extends Record<string, unknown>>({
                   }}
                   placeholder={`${label} 검색...`}
                   disabled={disabled}
-                  className="w-full border-none pl-0 pr-8 text-sm placeholder:text-sm"
+                  className="w-full pr-8"
                 />
               )}
             </div>
