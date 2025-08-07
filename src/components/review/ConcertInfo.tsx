@@ -15,14 +15,14 @@ export function ConcertInfo({ concert }: ConcertInfoProps) {
 
   return (
     <div className="flex gap-4">
-      <div className="h-24 w-24 flex-shrink-0 rounded-md bg-gray-200">
+      <div className="h-24 w-16 flex-shrink-0 rounded-md bg-gray-200">
         {concert.poster_url ? (
           <Image
             src={concert.poster_url}
             alt={concert.title}
-            width={96}
+            width={64}
             height={96}
-            className="h-full w-full rounded-md object-cover"
+            className="aspect-[2/3] rounded-md object-cover"
           />
         ) : (
           <div className="flex h-full w-full items-center justify-center text-gray-400">
