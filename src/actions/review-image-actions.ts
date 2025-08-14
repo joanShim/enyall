@@ -1,5 +1,4 @@
 import { createClient } from "@/utils/supabase/server";
-import { revalidatePath } from "next/cache";
 import { optimizeReviewImage } from "@/utils/imageOptimization";
 
 // 리뷰 이미지 업로드
