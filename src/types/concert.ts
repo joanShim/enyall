@@ -12,6 +12,7 @@ export type Concert = Tables<"concerts"> & {
   concert_date?: string | Date;
   poster_url?: string;
   title: string;
+  concert_schedules?: Array<Tables<"concert_schedules">>;
 };
 
 export type ArtistJson = {

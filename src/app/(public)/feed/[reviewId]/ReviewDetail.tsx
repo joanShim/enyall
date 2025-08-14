@@ -2,6 +2,7 @@ import { Review } from "@/types/review";
 import Image from "next/image";
 import { formatDate } from "@/utils/dateFormat";
 import { Separator } from "@/components/ui/separator";
+import { format } from "date-fns";
 
 type ArtistJson = {
   name_official: string;
@@ -16,9 +17,12 @@ export default function ReviewDetail({ review }: { review: Review }) {
         .join(", ")
     : "아티스트 정보 없음";
 
-  const concertDate = concert?.concert_schedules?.[0]?.schedule_date
-    ? formatDate(concert.concert_schedules[0].schedule_date)
+  const schedule = concert?.concert_schedules?.[0];
+  const concertDate = schedule?.schedule_date
+    ? formatDate(schedule.schedule_date)
     : "날짜 정보 없음";
+
+  const startTime = schedule?.start_time;
 
   return (
     <section className="flex flex-col gap-4">
@@ -46,7 +50,14 @@ export default function ReviewDetail({ review }: { review: Review }) {
           </h3>
           <p className="line-clamp-1 text-gray-600">{artistNames}</p>
           <p className="text-gray-500">{concert?.venue?.name}</p>
-          <span>{concertDate}</span>
+          <span>
+            {concertDate}
+            {startTime && (
+              <span className="ml-2">
+                {format(new Date(`2000-01-01T${startTime}`), "HH:mm")}
+              </span>
+            )}
+          </span>
         </div>
       </div>
       <Separator />
