@@ -4,37 +4,30 @@ import { toast } from "sonner";
 import { Upload, X } from "lucide-react";
 import Image from "next/image";
 import { v4 as uuidv4 } from "uuid";
+import { ImageFile } from "@/hooks/useReviewImageUpload";
 
-export interface ImageFile {
-  file?: File; // 새 이미지일 경우만 File 객체 존재
-  previewUrl: string;
-  id: string;
-  isExisting?: boolean; // 기존 이미지인지 여부
-  url?: string; // 기존 이미지의 실제 URL (스토리지 경로 추출용)
-}
-
-interface ImageUploaderProps {
+interface ReviewImageUploaderProps {
   images: ImageFile[];
-  initialUrls?: string[]; // 기존 이미지 URL 배열
+  initialUrls?: string[]; // 기존 리뷰 이미지 URL 배열
   onChange: (images: ImageFile[]) => void;
-  onDeletedImages?: (urls: string[]) => void; // 삭제된 기존 이미지 URL 반환
+  onDeletedImages?: (urls: string[]) => void; // 삭제된 기존 리뷰 이미지 URL 반환
   disabled?: boolean;
-  maxImages?: number; // 최대 이미지 개수
+  maxImages?: number; // 최대 리뷰 이미지 개수
 }
 
-export function ImageUploader({
+export function ReviewImageUploader({
   images,
   initialUrls = [],
   onChange,
   onDeletedImages,
   disabled = false,
   maxImages = 5, // 기본값 5개
-}: ImageUploaderProps) {
+}: ReviewImageUploaderProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [deletedImages, setDeletedImages] = useState<string[]>([]);
   const [isInitialized, setIsInitialized] = useState(false);
 
-  // 초기 이미지 설정 - 딱 한 번만 실행되도록 수정
+  // 초기 리뷰 이미지 설정 - 딱 한 번만 실행되도록 수정
   useEffect(() => {
     if (initialUrls.length > 0 && images.length === 0 && !isInitialized) {
       const existingImages: ImageFile[] = initialUrls.map((url) => ({
@@ -58,9 +51,9 @@ export function ImageUploader({
       const maxUploadSize = 5 * 1024 * 1024; // 5MB
 
       try {
-        // 최대 이미지 개수 체크
+        // 최대 리뷰 이미지 개수 체크
         if (newImages.length + files.length > maxImages) {
-          toast.error(`최대 ${maxImages}개의 이미지만 업로드 가능합니다.`);
+          toast.error(`최대 ${maxImages}개의 리뷰 이미지만 업로드 가능합니다.`);
           return;
         }
 
@@ -96,8 +89,8 @@ export function ImageUploader({
 
         onChange(newImages);
       } catch (error) {
-        console.error("이미지 처리 중 오류:", error);
-        toast.error("이미지 처리에 실패했습니다.");
+        console.error("리뷰 이미지 처리 중 오류:", error);
+        toast.error("리뷰 이미지 처리에 실패했습니다.");
       } finally {
         setIsLoading(false);
         // 입력 필드 초기화
@@ -111,18 +104,18 @@ export function ImageUploader({
     const newImages = [...images];
     const removedImage = newImages[index];
 
-    // 기존 이미지인 경우 삭제 목록에 추가
+    // 기존 리뷰 이미지인 경우 삭제 목록에 추가
     if (removedImage.isExisting && removedImage.url) {
       const newDeletedImages = [...deletedImages, removedImage.url];
       setDeletedImages(newDeletedImages);
 
-      // 부모 컴포넌트에 삭제된 이미지 URL 즉시 전달
+      // 부모 컴포넌트에 삭제된 리뷰 이미지 URL 즉시 전달
       if (onDeletedImages) {
         onDeletedImages(newDeletedImages);
       }
     }
 
-    // 새 이미지인 경우 미리보기 URL 해제
+    // 새 리뷰 이미지인 경우 미리보기 URL 해제
     if (!removedImage.isExisting && removedImage.previewUrl) {
       URL.revokeObjectURL(removedImage.previewUrl);
     }
@@ -137,14 +130,16 @@ export function ImageUploader({
         <Button
           type="button"
           variant="outline"
-          onClick={() => document.getElementById("image-upload")?.click()}
+          onClick={() =>
+            document.getElementById("review-image-upload")?.click()
+          }
           disabled={disabled || isLoading || images.length >= maxImages}
         >
           <Upload className="mr-2 h-4 w-4" />
-          {isLoading ? "처리 중..." : "사진 추가하기"}
+          {isLoading ? "처리 중..." : "리뷰 사진 추가하기"}
         </Button>
         <input
-          id="image-upload"
+          id="review-image-upload"
           type="file"
           multiple
           accept="image/*"
