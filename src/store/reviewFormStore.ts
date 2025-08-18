@@ -5,7 +5,10 @@ import { persist, createJSONStorage } from "zustand/middleware";
 import { ReviewFormSchema } from "@/schemas/reviewForm";
 
 type ReviewFormState = Partial<ReviewFormSchema> & {
-  setData: (data: Partial<ReviewFormSchema>) => void;
+  selectedScheduleId?: string;
+  setData: (
+    data: Partial<ReviewFormSchema> & { selectedScheduleId?: string },
+  ) => void;
   reset: () => void;
   currentStep: number;
   setStep: (step: number) => void;
@@ -25,6 +28,7 @@ export const useReviewFormStore = create<ReviewFormState>()(
           concertId: undefined,
           reviewContent: undefined,
           reviewImages: [],
+          selectedScheduleId: undefined,
         }),
     }),
     {

@@ -30,6 +30,7 @@ export function DateTimeSelector({
   // entries가 변경될 때 상위 컴포넌트에 알림
   useEffect(() => {
     if (onEntriesChange) {
+      console.log("DateTimeSelector sending entries:", entries);
       onEntriesChange(entries);
     }
   }, [entries, onEntriesChange]);

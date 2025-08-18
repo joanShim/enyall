@@ -26,7 +26,8 @@ export function useGetConcert(concertId: string | null) {
             venue:venues(*),
             artists:concerts_artists(
               artist:artists(*)
-            )
+            ),
+            concert_schedules(*)
           `,
           )
           .eq("id", concertId)

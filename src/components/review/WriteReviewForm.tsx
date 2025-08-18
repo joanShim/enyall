@@ -19,8 +19,8 @@ import { z } from "zod";
 import { reviewFormSchema } from "@/schemas/reviewForm";
 import { useGetConcert } from "@/hooks/useGetConcert";
 import { Review } from "@/types/review";
-import { ImageFile, ImageUploader } from "@/components/review/ImageUploader";
-import { v4 as uuidv4 } from "uuid";
+import { ReviewImageUploader } from "@/components/review/ReviewImageUploader";
+import { useReviewImageUpload, ImageFile } from "@/hooks/useReviewImageUpload";
 
 // 리뷰 작성 단계에서 필요한 스키마만 추출
 const writeReviewSchema = reviewFormSchema.pick({
@@ -42,7 +42,8 @@ const WriteReviewForm = forwardRef<HTMLFormElement, WriteReviewFormProps>(
     ref,
   ) {
     const router = useRouter();
-    const { concertId, reviewContent, setData } = useReviewFormStore();
+    const { concertId, reviewContent, selectedScheduleId, setData } =
+      useReviewFormStore();
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isInitialized, setIsInitialized] = useState(false);
     const [imageFiles, setImageFiles] = useState<ImageFile[]>([]);
@@ -55,6 +56,11 @@ const WriteReviewForm = forwardRef<HTMLFormElement, WriteReviewFormProps>(
 
     const { concert, isLoading, error } = useGetConcert(effectiveConcertId);
     const supabase = createClient();
+    const {
+      uploadReviewImages,
+      deleteRemovedReviewImages,
+      cleanupImagePreviews,
+    } = useReviewImageUpload();
 
     const {
       register,
@@ -114,90 +120,14 @@ const WriteReviewForm = forwardRef<HTMLFormElement, WriteReviewFormProps>(
       // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isInitialized, concertId, isEditMode]);
 
-    // 수정 모드에서 초기 이미지 설정
+    // 수정 모드에서 초기 리뷰 이미지 설정
     useEffect(() => {
       if (isEditMode && initialReview?.images?.length && isInitialized) {
-        // 이미지 초기화 로직은 ImageUploader 컴포넌트에서 처리
+        // 리뷰 이미지 초기화 로직은 ReviewImageUploader 컴포넌트에서 처리
       }
     }, [isEditMode, initialReview, isInitialized]);
 
-    // 이미지 파일 업로드 함수
-    const uploadImagesToStorage = async (): Promise<string[]> => {
-      const uploadedUrls: string[] = [];
-
-      // 1. 기존 이미지 중 삭제되지 않은 이미지 URL 먼저 추가
-      if (isEditMode && initialReview?.images?.length) {
-        // 삭제되지 않은 기존 이미지만 포함
-        const remainingImages = initialReview.images.filter(
-          (url) => !deletedImageUrls.includes(url),
-        );
-        uploadedUrls.push(...remainingImages);
-      }
-
-      // 2. 새 이미지 파일만 업로드 (isExisting이 false인 것들)
-      for (const imageFile of imageFiles) {
-        // 기존 이미지는 건너뛰기 (이미 URL이 있음)
-        if (imageFile.isExisting) continue;
-
-        try {
-          // 새 이미지만 업로드
-          if (!imageFile.file) continue;
-
-          // 파일 이름 생성
-          const fileExt = imageFile.file.name.split(".").pop();
-          const fileName = `${uuidv4()}.${fileExt}`;
-          const filePath = `${fileName}`;
-
-          // Supabase Storage에 업로드
-          const { error } = await supabase.storage
-            .from("reviews")
-            .upload(filePath, imageFile.file);
-
-          if (error) {
-            console.error(`이미지 업로드 실패: ${error.message}`);
-            continue;
-          }
-
-          // 업로드된 이미지 URL 가져오기
-          const { data: urlData } = supabase.storage
-            .from("reviews")
-            .getPublicUrl(filePath);
-
-          uploadedUrls.push(urlData.publicUrl);
-        } catch (error) {
-          console.error("이미지 업로드 중 오류:", error);
-        }
-      }
-
-      return uploadedUrls;
-    };
-
-    // 삭제된 이미지 처리 함수
-    const deleteRemovedImages = async (): Promise<void> => {
-      if (!deletedImageUrls.length) return;
-
-      for (const imageUrl of deletedImageUrls) {
-        try {
-          // URL에서 파일 경로 추출
-          // 예: https://supabase-storage.com/storage/v1/object/public/reviews/image.jpg
-          // -> image.jpg
-          const urlParts = imageUrl.split("/");
-          const fileName = urlParts[urlParts.length - 1];
-
-          if (!fileName) continue;
-
-          const { error } = await supabase.storage
-            .from("reviews")
-            .remove([fileName]);
-
-          if (error) {
-            console.error(`이미지 삭제 실패: ${error.message}`);
-          }
-        } catch (error) {
-          console.error("이미지 삭제 중 오류:", error);
-        }
-      }
-    };
+    // 리뷰 이미지 업로드 및 삭제 로직은 useReviewImageUpload 훅에서 처리
 
     const onSubmit = async (data: WriteReviewFormValues) => {
       if (isEditMode && initialReview) {
@@ -215,6 +145,10 @@ const WriteReviewForm = forwardRef<HTMLFormElement, WriteReviewFormProps>(
       setDeletedImageUrls(urls);
     };
 
+    const handleScheduleSelect = (scheduleId: string) => {
+      setData({ selectedScheduleId: scheduleId });
+    };
+
     // 리뷰 생성 처리
     const handleCreate = async (data: WriteReviewFormValues) => {
       if (!concertId) return;
@@ -229,8 +163,13 @@ const WriteReviewForm = forwardRef<HTMLFormElement, WriteReviewFormProps>(
           throw new Error("로그인이 필요합니다");
         }
 
-        // 이미지 업로드 수행
-        const uploadedImageUrls = await uploadImagesToStorage();
+        // 리뷰 이미지 업로드 수행
+        const uploadedImageUrls = await uploadReviewImages(
+          imageFiles,
+          deletedImageUrls,
+          isEditMode,
+          initialReview?.images,
+        );
 
         const { data: newReview, error } = await supabase
           .from("reviews")
@@ -249,8 +188,8 @@ const WriteReviewForm = forwardRef<HTMLFormElement, WriteReviewFormProps>(
         toast.success("리뷰가 성공적으로 등록되었습니다");
         router.push(`/feed/${newReview.id}`);
 
-        // 이미지 미리보기 URL 정리 (메모리 누수 방지)
-        imageFiles.forEach((img) => URL.revokeObjectURL(img.previewUrl));
+        // 리뷰 이미지 미리보기 URL 정리 (메모리 누수 방지)
+        cleanupImagePreviews(imageFiles);
 
         setTimeout(() => {
           useReviewFormStore.getState().reset();
@@ -273,11 +212,16 @@ const WriteReviewForm = forwardRef<HTMLFormElement, WriteReviewFormProps>(
 
       setIsSubmitting(true);
       try {
-        // 1. 삭제된 이미지 처리
-        await deleteRemovedImages();
+        // 1. 삭제된 리뷰 이미지 처리
+        await deleteRemovedReviewImages(deletedImageUrls);
 
-        // 2. 이미지 업로드 수행 (기존 이미지 + 새 이미지)
-        const uploadedImageUrls = await uploadImagesToStorage();
+        // 2. 리뷰 이미지 업로드 수행 (기존 이미지 + 새 이미지)
+        const uploadedImageUrls = await uploadReviewImages(
+          imageFiles,
+          deletedImageUrls,
+          isEditMode,
+          initialReview?.images,
+        );
 
         // 3. 리뷰 업데이트
         const { error: updateError } = await supabase
@@ -298,10 +242,8 @@ const WriteReviewForm = forwardRef<HTMLFormElement, WriteReviewFormProps>(
           images: uploadedImageUrls,
         };
 
-        // 이미지 미리보기 URL 정리
-        imageFiles
-          .filter((img) => !img.isExisting)
-          .forEach((img) => URL.revokeObjectURL(img.previewUrl));
+        // 리뷰 이미지 미리보기 URL 정리
+        cleanupImagePreviews(imageFiles);
 
         toast.success("리뷰가 성공적으로 수정되었습니다");
 
@@ -330,7 +272,11 @@ const WriteReviewForm = forwardRef<HTMLFormElement, WriteReviewFormProps>(
 
     return (
       <div className="space-y-6">
-        <ConcertInfo concert={concert} />
+        <ConcertInfo
+          concert={concert}
+          onScheduleSelect={handleScheduleSelect}
+          selectedScheduleId={selectedScheduleId}
+        />
 
         <form id="review-form" ref={formRef} onSubmit={handleSubmit(onSubmit)}>
           <div className="space-y-4">
@@ -354,7 +300,7 @@ const WriteReviewForm = forwardRef<HTMLFormElement, WriteReviewFormProps>(
               </p>
             )}
 
-            <ImageUploader
+            <ReviewImageUploader
               images={imageFiles}
               initialUrls={isEditMode ? initialReview?.images : []}
               onChange={handleImageChange}

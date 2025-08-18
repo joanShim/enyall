@@ -20,3 +20,13 @@ export async function optimizePosterImage(buffer: Buffer): Promise<Buffer> {
     .webp({ quality: 80 })
     .toBuffer();
 }
+
+export async function optimizeReviewImage(buffer: Buffer): Promise<Buffer> {
+  return sharp(buffer)
+    .resize(1200, 1200, {
+      fit: "inside",
+      withoutEnlargement: true,
+    })
+    .webp({ quality: 80 })
+    .toBuffer();
+}

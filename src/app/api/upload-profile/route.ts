@@ -1,6 +1,6 @@
 import { createClient } from "@/utils/supabase/server";
 import { NextResponse } from "next/server";
-import sharp from "sharp";
+import { optimizeProfileImage } from "@/utils/imageOptimization";
 import { v4 as uuidv4 } from "uuid";
 
 export async function POST(request: Request) {
@@ -14,13 +14,9 @@ export async function POST(request: Request) {
 
     // 이미지 최적화
     const arrayBuffer = await file.arrayBuffer();
-    const optimizedBuffer = await sharp(Buffer.from(arrayBuffer))
-      .resize(256, 256, {
-        fit: "cover",
-        position: "center",
-      })
-      .webp({ quality: 80 })
-      .toBuffer();
+    const optimizedBuffer = await optimizeProfileImage(
+      Buffer.from(arrayBuffer),
+    );
 
     // Supabase 클라이언트 생성
     const supabase = await createClient();

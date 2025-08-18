@@ -8,6 +8,7 @@ import { Tables } from "@/types/db";
 type Concert = Tables<"concerts"> & {
   venue: Tables<"venues"> | null;
   artists: Tables<"artists">[];
+  concert_schedules: Tables<"concert_schedules">[];
 };
 
 type SearchType = "concert" | "artist";
@@ -101,10 +102,16 @@ export function useConcertSearch(
                 ).data?.map((ca) => ca.artist_id) || [],
               );
 
+            const { data: schedulesData } = await supabase
+              .from("concert_schedules")
+              .select("*")
+              .eq("concert_id", concert.id);
+
             return {
               ...concert,
               venue: venueData || null,
               artists: artistsData || [],
+              concert_schedules: schedulesData || [],
             };
           }),
         );

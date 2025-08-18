@@ -14,14 +14,14 @@ export default async function ReviewDetailPage({ params }: PageProps) {
   const { review, error } = await getReview(reviewId);
   const supabase = await createClient();
   const {
-    data: { session },
-  } = await supabase.auth.getSession();
+    data: { user },
+  } = await supabase.auth.getUser();
 
   if (error || !review) {
     notFound();
   }
 
-  const isCurrentUserAuthor = session?.user.id === review.user_id;
+  const isCurrentUserAuthor = user?.id === review.user_id;
 
   return (
     <div className="container mx-auto px-4">

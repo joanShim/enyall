@@ -99,12 +99,14 @@ function SelectConcertFormContent() {
               className="flex w-full cursor-pointer items-start gap-4 border p-4 hover:bg-gray-50"
               onClick={() => handleConcertSelect(concert.id)}
             >
-              <div className="h-16 w-16 flex-shrink-0 rounded-md bg-gray-200">
+              <div className="aspect-[2/3] w-16 h-24 flex-shrink-0 rounded-md bg-gray-200">
                 {concert.poster_url ? (
                   <Image
                     src={concert.poster_url}
                     alt={concert.title}
                     className="h-full w-full rounded-md object-cover"
+                    width={64}
+                    height={96}
                   />
                 ) : (
                   <div className="flex h-full w-full items-center justify-center text-xs text-gray-400">
